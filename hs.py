@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Fixed bin size (e.g., 20 bins)
-BIN_SIZE = 20
+BIN_SIZE = 30
 
 def read_json_files(file_paths, entry):
     # Define per-channel parameters (excluding uniformity)
@@ -126,51 +126,50 @@ def load_existing_xlim(output_directory, entry):
 def plot_histograms(data_dict, output_directory, root_directory, entry, label, key_prefix, histogram_type, custom_bin_widths, xlimb):
     if xlimb:
         xlim_limits = load_existing_xlim(root_directory, entry)
-    else:
-        xlim_limits = load_existing_xlim(output_directory, entry)
 
     for outer_key, inner_dict in data_dict.items():
-        # Handle cases where data_dict is flat like uniformity/gain_ratio
         if not isinstance(inner_dict, dict):
             inner_dict = {outer_key: inner_dict}
-            outer_key = None  # No need to prefix filenames with outer_key
+            outer_key = None
 
         for param, values in inner_dict.items():
             if values:
                 plt.figure(figsize=(10, 6))
                 full_key = f"{key_prefix}_{param}" if outer_key is None else f"{outer_key}_{param}"
+
+                # Default bin width
                 bw = None
 
+                # Try to get custom bin width
                 if custom_bin_widths:
                     bw = custom_bin_widths.get(histogram_type, {}).get(full_key)
 
+                # If no custom bin width and xlimb is enabled, compute it from xlim
+                if not bw and xlimb and full_key in xlim_limits:
+                    xlim = xlim_limits[full_key]
+                    bw = (xlim["max"] - xlim["min"]) / BIN_SIZE
+
+                # Compute bins
                 bins = np.arange(min(values), max(values) + bw, bw) if bw else BIN_SIZE
                 plt.hist(values, bins=bins, alpha=0.7)
 
-                if xlimb:
-                    if full_key in xlim_limits:
-                        xlim = xlim_limits[full_key]
-                        plt.xlim(xlim["min"] - 0.125*(xlim["max"] - xlim["min"]),
-                                 xlim["max"] + 0.125*(xlim["max"] - xlim["min"]))
-                        plt.axvline(x=xlim["min"], color='red', linestyle='--', label=f'{param} min')
-                        plt.axvline(x=xlim["max"], color='red', linestyle='--', label=f'{param} max')
+                # Draw x-limits and markers if xlim enabled
+                if xlimb and full_key in xlim_limits:
+                    xlim = xlim_limits[full_key]
+                    plt.xlim(xlim["min"] - 0.125 * (xlim["max"] - xlim["min"]),
+                             xlim["max"] + 0.125 * (xlim["max"] - xlim["min"]))
+                    plt.axvline(x=xlim["min"], color='red', linestyle='--', label=f'{param} min')
+                    plt.axvline(x=xlim["max"], color='red', linestyle='--', label=f'{param} max')
 
-                        # Get y-axis limits to position text just below the x-axis
-                        ymin, ymax = plt.ylim()
-                        ytext_pos = ymin - 0.05 * (ymax - ymin)  # slightly below the x-axis
+                    ymin, ymax = plt.ylim()
+                    ytext_pos = ymin - 0.05 * (ymax - ymin)
 
-                        # Add text at bottom of the vertical lines
-                        plt.text(xlim["min"], ytext_pos, f'{xlim["min"]:.2f}', color='red',
-                                 ha='center', va='top', fontsize=9, clip_on=False)
-                        plt.text(xlim["max"], ytext_pos, f'{xlim["max"]:.2f}', color='red',
-                                 ha='center', va='top', fontsize=9, clip_on=False)
-                    else:
-                        print(f"xlim for {full_key} does not exist in file")
-                else:
-                    xlim_limits[full_key] = {
-                        "min": plt.gca().get_xlim()[0],
-                        "max": plt.gca().get_xlim()[1]
-                    }
+                    plt.text(xlim["min"], ytext_pos, f'{xlim["min"]:.2f}', color='red',
+                             ha='center', va='top', fontsize=9, clip_on=False)
+                    plt.text(xlim["max"], ytext_pos, f'{xlim["max"]:.2f}', color='red',
+                             ha='center', va='top', fontsize=9, clip_on=False)
+                elif xlimb:
+                    print(f"xlim for {full_key} does not exist in file")
 
                 title_key = f"{label} {param}" if outer_key is None else f"{param} for {outer_key}"
                 plt.title(f"{title_key} - {entry}")
@@ -183,6 +182,7 @@ def plot_histograms(data_dict, output_directory, root_directory, entry, label, k
                     else f"{outer_key}_{param}_{entry}_histogram.png"
                 plt.savefig(os.path.join(output_directory, filename))
                 plt.close()
+
 
 
 def main(root_directory, output_directory, bwcustom = False, xlimb = False):
@@ -214,4 +214,4 @@ def main(root_directory, output_directory, bwcustom = False, xlimb = False):
 if __name__ == '__main__':
     root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/"  # Update with your actual root directory.
     output_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/rstst/"  # Update with your desired output directory.
-    main(root_directory, output_directory, True, True)
+    main(root_directory, output_directory, False, True)
