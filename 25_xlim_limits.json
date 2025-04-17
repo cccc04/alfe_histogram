@@ -1,0 +1,378 @@
+{
+  "gain_ratio_0": {
+    "min": 23.2,
+    "max": 23.80
+  },
+  "gain_ratio_1": {
+    "min": 23.2,
+    "max": 23.80
+  },
+  "gain_ratio_2": {
+    "min": 23.2,
+    "max": 23.80
+  },
+  "gain_ratio_3": {
+    "min": 23.2,
+    "max": 23.80
+  },
+  "CH0 HG_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "CH0 HG_noise_rms_mv": {
+    "min": 0.36432749999999997,
+    "max": 0.9964424999999993
+  },
+  "CH0 HG_gain": {
+    "min": 2940,
+    "max": 3090
+  },
+  "CH0 HG_eni": {
+    "min": 150,
+    "max": 275
+  },
+  "CH0 HG_peaking_time": {
+    "min": 45,
+    "max": 47
+  },
+  "CH0 HG_max_non_linearity": {
+    "min": 0.06,
+    "max": 0.25
+  },
+  "CH0 HG_fit_gain": {
+    "min": 368.53671674999964,
+    "max": 3234.6351882500085
+  },
+  "CH1 HG_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "CH1 HG_noise_rms_mv": {
+    "min": 0.2522242500000007,
+    "max": 5.124690749999985
+  },
+  "CH1 HG_gain": {
+    "min": 2940,
+    "max": 3090
+  },
+  "CH1 HG_eni": {
+    "min": 150,
+    "max": 275
+  },
+  "CH1 HG_peaking_time": {
+    "min": 45,
+    "max": 47
+  },
+  "CH1 HG_max_non_linearity": {
+    "min": 0.06,
+    "max": 0.25
+  },
+  "CH1 HG_fit_gain": {
+    "min": 2647.7706986500007,
+    "max": 3119.6205683499875
+  },
+  "CH2 HG_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "CH2 HG_noise_rms_mv": {
+    "min": 0.4780625,
+    "max": 0.5917474999999999
+  },
+  "CH2 HG_gain": {
+    "min": 2940,
+    "max": 3090
+  },
+  "CH2 HG_eni": {
+    "min": 150,
+    "max": 275
+  },
+  "CH2 HG_peaking_time": {
+    "min": 45,
+    "max": 47
+  },
+  "CH2 HG_max_non_linearity": {
+    "min": 0.06,
+    "max": 0.25
+  },
+  "CH2 HG_fit_gain": {
+    "min": 2716.115456100001,
+    "max": 3113.2507418999935
+  },
+  "CH3 HG_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "CH3 HG_noise_rms_mv": {
+    "min": 0.48810960000000014,
+    "max": 0.9716784000000009
+  },
+  "CH3 HG_gain": {
+    "min": 2940,
+    "max": 3090
+  },
+  "CH3 HG_eni": {
+    "min": 150,
+    "max": 275
+  },
+  "CH3 HG_peaking_time": {
+    "min": 45,
+    "max": 47
+  },
+  "CH3 HG_max_non_linearity": {
+    "min": 0.06,
+    "max": 0.25
+  },
+  "CH3 HG_fit_gain": {
+    "min": 2719.109865799999,
+    "max": 3116.266278200003
+  },
+  "CH0 LG_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "CH0 LG_noise_rms_mv": {
+    "min": 0.1222135,
+    "max": 0.15645650000000008
+  },
+  "CH0 LG_gain": {
+    "min": 125,
+    "max": 132
+  },
+  "CH0 LG_eni": {
+    "min": 800,
+    "max": 1250
+  },
+  "CH0 LG_peaking_time": {
+    "min": 45,
+    "max": 47
+  },
+  "CH0 LG_max_non_linearity": {
+    "min": 0.07,
+    "max": 0.45
+  },
+  "CH0 LG_fit_gain": {
+    "min": 46.63583340000001,
+    "max": 136.03803859999985
+  },
+  "CH1 LG_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "CH1 LG_noise_rms_mv": {
+    "min": 0.11634370000000002,
+    "max": 0.2660822999999993
+  },
+  "CH1 LG_gain": {
+    "min": 125,
+    "max": 132
+  },
+  "CH1 LG_eni": {
+    "min": 800,
+    "max": 1250
+  },
+  "CH1 LG_peaking_time": {
+    "min": 45,
+    "max": 47
+  },
+  "CH1 LG_max_non_linearity": {
+    "min": 0.07,
+    "max": 0.45
+  },
+  "CH1 LG_fit_gain": {
+    "min": 112.249711625,
+    "max": 165.8949158750001
+  },
+  "CH2 LG_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "CH2 LG_noise_rms_mv": {
+    "min": 0.10739230000000001,
+    "max": 0.1506817
+  },
+  "CH2 LG_gain": {
+    "min": 125,
+    "max": 132
+  },
+  "CH2 LG_eni": {
+    "min": 800,
+    "max": 1250
+  },
+  "CH2 LG_peaking_time": {
+    "min": 45,
+    "max": 47
+  },
+  "CH2 LG_max_non_linearity": {
+    "min": 0.07,
+    "max": 0.45
+  },
+  "CH2 LG_fit_gain": {
+    "min": 115.31023375000001,
+    "max": 132.9735112500001
+  },
+  "CH3 LG_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "CH3 LG_noise_rms_mv": {
+    "min": 0.11085450000000001,
+    "max": 0.15563549999999984
+  },
+  "CH3 LG_gain": {
+    "min": 125,
+    "max": 132
+  },
+  "CH3 LG_eni": {
+    "min": 800,
+    "max": 1250
+  },
+  "CH3 LG_peaking_time": {
+    "min": 45,
+    "max": 47
+  },
+  "CH3 LG_max_non_linearity": {
+    "min": 0.07,
+    "max": 0.45
+  },
+  "CH3 LG_fit_gain": {
+    "min": 115.933469125,
+    "max": 133.54316837499982
+  },
+  "SUM x3_baseline": {
+    "min": -720,
+    "max": -570
+  },
+  "SUM x3_noise_rms_mv": {
+    "min": 0.5042696000000001,
+    "max": 1.2406184000000007
+  },
+  "SUM x3_gain": {
+    "min": 1365,
+    "max": 1425
+  },
+  "SUM x3_eni": {
+    "min": 350,
+    "max": 575
+  },
+  "SUM x3_peaking_time": {
+    "min": 42.8,
+    "max": 45
+  },
+  "SUM x3_max_non_linearity": {
+    "min": 0.2,
+    "max": 0.75
+  },
+  "SUM x3_fit_gain": {
+    "min": 1116.0124480249997,
+    "max": 1443.4299114750088
+  },
+  "SUM x1_baseline": {
+    "min": -650,
+    "max": -540
+  },
+  "SUM x1_noise_rms_mv": {
+    "min": 0.22432680000000005,
+    "max": 0.39885719999999925
+  },
+  "SUM x1_gain": {
+    "min": 472,
+    "max": 495
+  },
+  "SUM x1_eni": {
+    "min": 350,
+    "max": 600
+  },
+  "SUM x1_peaking_time": {
+    "min": 40.6,
+    "max": 42.2
+  },
+  "SUM x1_max_non_linearity": {
+    "min": 0.08,
+    "max": 0.24
+  },
+  "SUM x1_fit_gain": {
+    "min": 388.519896875,
+    "max": 503.5713856250003
+  },
+  "SUM x1_gain_crude": {
+    "min": 330.736642575,
+    "max": 504.0495059250002
+  },
+  "LG0_gain_crude": {
+    "min": 5.715352800000012,
+    "max": 135.46029119999972
+  },
+  "LG1_gain_crude": {
+    "min": 106.75981039999992,
+    "max": 240.57700160000155
+  },
+  "LG2_gain_crude": {
+    "min": 117.6158011,
+    "max": 130.10715689999998
+  },
+  "LG3_gain_crude": {
+    "min": -3.071481000000001,
+    "max": 136.352881
+  },
+  "HG0_gain_crude": {
+    "min": 106.3522693749999,
+    "max": 3209.386723125002
+  },
+  "HG1_gain_crude": {
+    "min": 2566.2078839999995,
+    "max": 3616.3909960000096
+  },
+  "HG2_gain_crude": {
+    "min": 2742.080571875,
+    "max": 3087.498130625003
+  },
+  "HG3_gain_crude": {
+    "min": -150.29453590000006,
+    "max": 3230.037713900001
+  },
+  "400_kHz_i2c_margin_list": {
+    "min": 290,
+    "max": 360
+  },
+  "1_MHz_i2c_margin_list": {
+    "min": 290,
+    "max": 360
+  },
+  "1V2_current": {
+    "min": 275,
+    "max": 310
+  },
+  "1V2_voltage": {
+    "min": 1199.7099999999998,
+    "max": 1201.6899999999982
+  },
+  "2V5_current": {
+    "min": 97,
+    "max": 108
+  },
+  "2V5_voltage": {
+    "min": 2496.41075,
+    "max": 2498.3742500000008
+  },
+  "pwr_total_mw_power": {
+    "min": 580,
+    "max": 640
+  },
+  "hg_gain_uniformity": {
+    "min": 0,
+    "max": 5
+  },
+  "lg_gain_uniformity": {
+    "min": 0,
+    "max": 5
+  },
+  "hg_peaking_time_uniformity": {
+    "min": 0,
+    "max": 2.5
+  },
+  "lg_peaking_time_uniformity": {
+    "min": 0,
+    "max": 2.5
+  }
+}
