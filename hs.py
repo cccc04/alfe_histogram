@@ -102,32 +102,6 @@ def read_json_files(file_paths, entry):
 
     return channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values
 
-
-def print_statistics(data, label=None):
-    if not data:
-        print("No data to display.\n")
-        return
-
-    # Case 1: flat dict of lists
-    if isinstance(next(iter(data.values())), list):
-        for param, values in data.items():
-            if values:
-                arr = np.array(values)
-                label_text = f"{label} " if label else ""
-                print(f"{label_text}{param}: Mean = {np.mean(arr):.4f}, Std = {np.std(arr):.4f}")
-        print()
-        return
-
-    # Case 2: Nested dict (e.g., per-channel or power_ldo)
-    for group, params in data.items():
-        group_label = f"{label} {group}" if label else f"{group}"
-        print(f"{group_label}:")
-        for param, values in params.items():
-            if values:
-                arr = np.array(values)
-                print(f"  {param}: Mean = {np.mean(arr):.4f}, Std = {np.std(arr):.4f}")
-        print()
-
 def load_bin_widths(output_directory, filename="bin_widths.json"):
     """
     Load the bin widths from a JSON file.
@@ -209,11 +183,6 @@ def plot_histograms(data_dict, output_directory, root_directory, entry, label, k
                     else f"{outer_key}_{param}_{entry}_histogram.png"
                 plt.savefig(os.path.join(output_directory, filename))
                 plt.close()
-
-    if not xlimb:
-        xlim_file_path = os.path.join(output_directory, f"{entry}_xlim_limits.json")
-        with open(xlim_file_path, "w") as f:
-            json.dump(xlim_limits, f, indent=4)
 
 
 def main(root_directory, output_directory, bwcustom = False, xlimb = False):
