@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Fixed bin size (e.g., 20 bins)
-BIN_SIZE = 30
+BIN_SIZE = 20
 
-def read_json_files(file_paths, entry):
+def read_json_files(file_paths, impedance):
     # Define per-channel parameters (excluding uniformity)
     channel_params = [
         "baseline", "noise_rms_mv", "gain", "eni", 
@@ -49,7 +49,7 @@ def read_json_files(file_paths, entry):
             data = json.load(f)
 
         # Process HG
-        key_hg = f"results_noise_{entry}_all_ch_HG"
+        key_hg = f"results_noise_{impedance}_all_ch_HG"
         process_results(data, key_hg, ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
         if key_hg in data:
             results = data[key_hg]
@@ -57,7 +57,7 @@ def read_json_files(file_paths, entry):
             uniformity_hg["peaking_time_uniformity"].append(results.get("peaking_time_uniformity"))
 
         # Process LG
-        key_lg = f"results_noise_{entry}_all_ch_LG"
+        key_lg = f"results_noise_{impedance}_all_ch_LG"
         process_results(data, key_lg, ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
         if key_lg in data:
             results = data[key_lg]
@@ -65,17 +65,17 @@ def read_json_files(file_paths, entry):
             uniformity_lg["peaking_time_uniformity"].append(results.get("peaking_time_uniformity"))
 
         # Process sum and linearity data
-        process_results(data, f"results_noise_{entry}_sum_x3", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
-        process_results(data, f"results_noise_{entry}_sum_x1", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
-        process_results(data, f"results_linearity_{entry}_sum_x3", ["max_non_linearity", "fit_gain"])
-        process_results(data, f"results_linearity_{entry}_sum_x1", ["max_non_linearity", "fit_gain"])
-        process_results(data, f"results_linearity_{entry}_all_ch_HG", ["max_non_linearity", "fit_gain"])
-        process_results(data, f"results_linearity_{entry}_all_ch_LG", ["max_non_linearity", "fit_gain"])
-        process_results(data, f"results_channel_enable_{entry}", ["gain_crude"])
+        process_results(data, f"results_noise_{impedance}_sum_x3", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
+        process_results(data, f"results_noise_{impedance}_sum_x1", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
+        process_results(data, f"results_linearity_{impedance}_sum_x3", ["max_non_linearity", "fit_gain"])
+        process_results(data, f"results_linearity_{impedance}_sum_x1", ["max_non_linearity", "fit_gain"])
+        process_results(data, f"results_linearity_{impedance}_all_ch_HG", ["max_non_linearity", "fit_gain"])
+        process_results(data, f"results_linearity_{impedance}_all_ch_LG", ["max_non_linearity", "fit_gain"])
+        process_results(data, f"results_channel_enable_{impedance}", ["gain_crude"])
         process_results(data, "i2c_results", ["i2c_margin_list"])
 
         # Gain ratio
-        gain_ratio_key = f"gain_ratio_{entry}"
+        gain_ratio_key = f"gain_ratio_{impedance}"
         if gain_ratio_key in data:
             results = data[gain_ratio_key]
             if isinstance(results, list):
@@ -116,16 +116,16 @@ def load_bin_widths(output_directory, filename="bin_widths.json"):
         print(f"No bin widths file found at {file_path}")
         return None
 
-def load_existing_xlim(output_directory, entry):
-    xlim_file_path = os.path.join(output_directory, f"{entry}_xlim_limits.json")
+def load_existing_xlim(output_directory, impedance):
+    xlim_file_path = os.path.join(output_directory, f"{impedance}_xlim_limits.json")
     if os.path.exists(xlim_file_path):
         with open(xlim_file_path, "r") as f:
             return json.load(f)  # Load existing xlim limits
     return {}  # Return an empty dictionary if no existing file is found
 
-def plot_histograms(data_dict, output_directory, root_directory, entry, label, key_prefix, histogram_type, custom_bin_widths, xlimb):
+def plot_histograms(data_dict, output_directory, root_directory, impedance, label, key_prefix, histogram_type, custom_bin_widths, xlimb):
     if xlimb:
-        xlim_limits = load_existing_xlim(root_directory, entry)
+        xlim_limits = load_existing_xlim(root_directory, impedance)
 
     for outer_key, inner_dict in data_dict.items():
         if not isinstance(inner_dict, dict):
@@ -158,37 +158,33 @@ def plot_histograms(data_dict, output_directory, root_directory, entry, label, k
                     xlim = xlim_limits[full_key]
                     plt.xlim(xlim["min"] - 0.125 * (xlim["max"] - xlim["min"]),
                              xlim["max"] + 0.125 * (xlim["max"] - xlim["min"]))
-                    plt.axvline(x=xlim["min"], color='red', linestyle='--', label=f'{param} min')
-                    plt.axvline(x=xlim["max"], color='red', linestyle='--', label=f'{param} max')
-
-                    ymin, ymax = plt.ylim()
-                    ytext_pos = ymin - 0.05 * (ymax - ymin)
-
-                    plt.text(xlim["min"], ytext_pos, f'{xlim["min"]:.2f}', color='red',
-                             ha='center', va='top', fontsize=9, clip_on=False)
-                    plt.text(xlim["max"], ytext_pos, f'{xlim["max"]:.2f}', color='red',
-                             ha='center', va='top', fontsize=9, clip_on=False)
+    
+                    # Add vertical lines with formatted labels
+                    plt.axvline(x=xlim["min"], color='red', linestyle='--', label=f'min: {xlim["min"]:.2f}')
+                    plt.axvline(x=xlim["max"], color='red', linestyle='--', label=f'max: {xlim["max"]:.2f}')
+    
+                    plt.legend(loc='upper right', fontsize=14)
                 elif xlimb:
                     print(f"xlim for {full_key} does not exist in file")
 
                 title_key = f"{label} {param}" if outer_key is None else f"{param} for {outer_key}"
-                plt.title(f"{title_key} - {entry}")
+                plt.title(f"{title_key} - {impedance}")
                 plt.xlabel(param)
                 plt.ylabel("Count")
                 plt.grid(True)
                 plt.tight_layout()
 
-                filename = f"{label.lower()}_{param}_{entry}_histogram.png" if outer_key is None \
-                    else f"{outer_key}_{param}_{entry}_histogram.png"
+                filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if outer_key is None \
+                    else f"{outer_key}_{param}_{impedance}_histogram.png"
                 plt.savefig(os.path.join(output_directory, filename))
                 plt.close()
 
 
 
 def main(root_directory, output_directory, bwcustom = False, xlimb = False):
-    entryv = ["25", "50"]
+    impedance = ["25", "50"]
     current_directory = "./"
-    for entry in entryv:
+    for impedance_index in impedance:
         os.makedirs(output_directory, exist_ok=True)
    
         # Collect all results_all.json file paths.
@@ -197,19 +193,19 @@ def main(root_directory, output_directory, bwcustom = False, xlimb = False):
             if "results_all.json" in filenames:
                 file_paths.append(os.path.join(dirpath, "results_all.json"))
    
-        channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values = read_json_files(file_paths, entry)
+        channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values = read_json_files(file_paths, impedance_index)
       
         # Optionally, load the bin widths for use in plotting.
         if bwcustom:
-            custom_bin_widths = load_bin_widths(current_directory, entry + "widths.json")
+            custom_bin_widths = load_bin_widths(current_directory, impedance_index + "widths.json")
         else:
             custom_bin_widths = None
    
-        plot_histograms(channel_values, output_directory, current_directory, entry, "Channel", "channel", "channel_histograms", custom_bin_widths, xlimb)
-        plot_histograms(power_ldo_values, output_directory, current_directory, entry, "Power_LDO", "power_ldo", "power_ldo_histograms", custom_bin_widths, xlimb)
-        plot_histograms(uniformity_hg, output_directory, current_directory, entry, "HG", "hg", "uniformity_histograms", custom_bin_widths, xlimb)
-        plot_histograms(uniformity_lg, output_directory, current_directory, entry, "LG", "lg", "uniformity_histograms", custom_bin_widths, xlimb)
-        plot_histograms(gain_ratio_values, output_directory, current_directory, entry, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", custom_bin_widths, xlimb)
+        plot_histograms(channel_values, output_directory, current_directory, impedance_index, "Channel", "channel", "channel_histograms", custom_bin_widths, xlimb)
+        plot_histograms(power_ldo_values, output_directory, current_directory, impedance_index, "Power_LDO", "power_ldo", "power_ldo_histograms", custom_bin_widths, xlimb)
+        plot_histograms(uniformity_hg, output_directory, current_directory, impedance_index, "HG", "hg", "uniformity_histograms", custom_bin_widths, xlimb)
+        plot_histograms(uniformity_lg, output_directory, current_directory, impedance_index, "LG", "lg", "uniformity_histograms", custom_bin_widths, xlimb)
+        plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", custom_bin_widths, xlimb)
 
 if __name__ == '__main__':
     root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/"  # Update with your actual root directory.
