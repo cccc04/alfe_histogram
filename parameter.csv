@@ -9,3 +9,5 @@ peaking_time
 max_non_linearity
 gain_ratio
 uniformity
+gain_crude
+fit_gain
