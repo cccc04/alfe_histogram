@@ -1,0 +1,11 @@
+parameter name
+i2c_margin_list
+current
+power
+baseline
+gain
+eni
+peaking_time
+max_non_linearity
+gain_ratio
+uniformity
