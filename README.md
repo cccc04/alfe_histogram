@@ -25,7 +25,7 @@ pip3 install matplotlib numpy python-pptx pandas
 ```bash
 python3 plot_histograms.py
 ```
-4. In `slides_generation.py`, set `image_folder` to the image directory of the histograms and run the program for slides generation
+4. In `slides_generation.py`, set `image_folder` to the directory of previously generated histograms and run the program for slides generation
 ```bash
 python3 slides_generation.py
 ```
