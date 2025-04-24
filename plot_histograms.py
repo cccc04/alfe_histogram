@@ -26,8 +26,8 @@ def read_json_files(file_paths, impedance):
     channel_values = {channel: {param: [] for param in channel_params} for channel in channels}
     power_ldo_values = {}
     gain_ratio_values = {0: [], 1: [], 2: [], 3: []}
-    uniformity_hg = {"gain_uniformity": [], "peaking_time_uniformity": []}
-    uniformity_lg = {"gain_uniformity": [], "peaking_time_uniformity": []}
+    uniformity_hg = {"gain_uniformity": [], "peaking_time_uniformity": [], "baseline_uniformity": []}
+    uniformity_lg = {"gain_uniformity": [], "peaking_time_uniformity": [], "baseline_uniformity": []}
 
     def process_results(data, key_suffix, params):
         if key_suffix in data:
@@ -55,6 +55,7 @@ def read_json_files(file_paths, impedance):
             results = data[key_hg]
             uniformity_hg["gain_uniformity"].append(results.get("gain_uniformity"))
             uniformity_hg["peaking_time_uniformity"].append(results.get("peaking_time_uniformity"))
+            uniformity_hg["baseline_uniformity"].append(results.get("baseline_uniformity"))
 
         # Process LG
         key_lg = f"results_noise_{impedance}_all_ch_LG"
@@ -63,6 +64,7 @@ def read_json_files(file_paths, impedance):
             results = data[key_lg]
             uniformity_lg["gain_uniformity"].append(results.get("gain_uniformity"))
             uniformity_lg["peaking_time_uniformity"].append(results.get("peaking_time_uniformity"))
+            uniformity_lg["baseline_uniformity"].append(results.get("baseline_uniformity"))
 
         # Process sum and linearity data
         process_results(data, f"results_noise_{impedance}_sum_x3", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
