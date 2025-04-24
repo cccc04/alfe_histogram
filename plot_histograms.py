@@ -3,8 +3,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Fixed bin size (e.g., 20 bins)
-BIN_SIZE = 20
+# Fixed number of bins (e.g., 20 bins)
+N_BINS = 20
 
 def read_json_files(file_paths, impedance):
     # Define per-channel parameters (excluding uniformity)
@@ -125,7 +125,7 @@ def load_existing_xlim(output_directory, impedance):
             return json.load(f)  # Load existing xlim limits
     return {}  # Return an empty dictionary if no existing file is found
 
-def plot_histograms(data_dict, output_directory, root_directory, impedance, label, key_prefix, histogram_type, custom_bin_widths, xlimb):
+def plot_histograms(data_dict, output_directory, root_directory, impedance, label, key_prefix, histogram_type, xlimb):
     if xlimb:
         xlim_limits = load_existing_xlim(root_directory, impedance)
 
@@ -142,17 +142,13 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
                 # Default bin width
                 bw = None
 
-                # Try to get custom bin width
-                if custom_bin_widths:
-                    bw = custom_bin_widths.get(histogram_type, {}).get(full_key)
-
                 # If no custom bin width and xlimb is enabled, compute it from xlim
-                if not bw and xlimb and full_key in xlim_limits:
+                if xlimb and full_key in xlim_limits:
                     xlim = xlim_limits[full_key]
-                    bw = (xlim["max"] - xlim["min"]) / BIN_SIZE
+                    bw = (xlim["max"] - xlim["min"]) / N_BINS
 
                 # Compute bins
-                bins = np.arange(min(values), max(values) + bw, bw) if bw else BIN_SIZE
+                bins = np.arange(min(values), max(values) + bw, bw) if bw else N_BINS
                 plt.hist(values, bins=bins, alpha=0.7)
 
                 # Draw x-limits and markers if xlim enabled
@@ -183,7 +179,7 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
 
 
 
-def main(root_directory, output_directory, bwcustom = False, xlimb = False):
+def main(root_directory, output_directory, xlimb = False):
     impedance = ["25", "50"]
     current_directory = "./"
     for impedance_index in impedance:
@@ -196,20 +192,14 @@ def main(root_directory, output_directory, bwcustom = False, xlimb = False):
                 file_paths.append(os.path.join(dirpath, "results_all.json"))
    
         channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values = read_json_files(file_paths, impedance_index)
-      
-        # Optionally, load the bin widths for use in plotting.
-        if bwcustom:
-            custom_bin_widths = load_bin_widths(current_directory, impedance_index + "widths.json")
-        else:
-            custom_bin_widths = None
    
-        plot_histograms(channel_values, output_directory, current_directory, impedance_index, "Channel", "channel", "channel_histograms", custom_bin_widths, xlimb)
-        plot_histograms(power_ldo_values, output_directory, current_directory, impedance_index, "Power_LDO", "power_ldo", "power_ldo_histograms", custom_bin_widths, xlimb)
-        plot_histograms(uniformity_hg, output_directory, current_directory, impedance_index, "HG", "hg", "uniformity_histograms", custom_bin_widths, xlimb)
-        plot_histograms(uniformity_lg, output_directory, current_directory, impedance_index, "LG", "lg", "uniformity_histograms", custom_bin_widths, xlimb)
-        plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", custom_bin_widths, xlimb)
+        plot_histograms(channel_values, output_directory, current_directory, impedance_index, "Channel", "channel", "channel_histograms", xlimb)
+        plot_histograms(power_ldo_values, output_directory, current_directory, impedance_index, "Power_LDO", "power_ldo", "power_ldo_histograms", xlimb)
+        plot_histograms(uniformity_hg, output_directory, current_directory, impedance_index, "HG", "hg", "uniformity_histograms", xlimb)
+        plot_histograms(uniformity_lg, output_directory, current_directory, impedance_index, "LG", "lg", "uniformity_histograms", xlimb)
+        plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
     root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/"  # Update with your actual root directory.
     output_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/rstst/"  # Update with your desired output directory.
-    main(root_directory, output_directory, False, True)
+    main(root_directory, output_directory, True)
