@@ -41,7 +41,7 @@
   },
   "CH0 HG_fit_gain": {
     "min": 15600,
-    "max": 16300
+    "max": 16400
   },
   "CH1 HG_baseline": {
     "min": -650,
@@ -69,7 +69,7 @@
   },
   "CH1 HG_fit_gain": {
     "min": 15600,
-    "max": 16300
+    "max": 16400
   },
   "CH2 HG_baseline": {
     "min": -650,
@@ -97,7 +97,7 @@
   },
   "CH2 HG_fit_gain": {
     "min": 15600,
-    "max": 16300
+    "max": 16400
   },
   "CH3 HG_baseline": {
     "min": -650,
@@ -125,7 +125,7 @@
   },
   "CH3 HG_fit_gain": {
     "min": 15600,
-    "max": 16300
+    "max": 16400
   },
   "CH0 LG_baseline": {
     "min": -650,
@@ -153,7 +153,7 @@
   },
   "CH0 LG_fit_gain": {
     "min": 665,
-    "max": 695
+    "max": 700
   },
   "CH1 LG_baseline": {
     "min": -650,
@@ -181,7 +181,7 @@
   },
   "CH1 LG_fit_gain": {
     "min": 665,
-    "max": 695
+    "max": 700
   },
   "CH2 LG_baseline": {
     "min": -650,
@@ -209,7 +209,7 @@
   },
   "CH2 LG_fit_gain": {
     "min": 665,
-    "max": 695
+    "max": 700
   },
   "CH3 LG_baseline": {
     "min": -650,
@@ -237,7 +237,7 @@
   },
   "CH3 LG_fit_gain": {
     "min": 665,
-    "max": 695
+    "max": 700
   },
   "SUM x3_baseline": {
     "min": -720,
