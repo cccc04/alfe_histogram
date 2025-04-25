@@ -174,7 +174,7 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
 
                 filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if outer_key is None \
                     else f"{outer_key}_{param}_{impedance}_histogram.png"
-                plt.savefig(os.path.join(output_directory, filename))
+                plt.savefig(os.path.join(output_directory, filename), dpi=300)
                 plt.close()
 
 
