@@ -29,4 +29,5 @@ python3 plot_histograms.py
 ```bash
 python3 slides_generation.py
 ```
+5. Slides with Sumx1 and Sumx3 included would position the corresponding images into separate columns. It might be necessary to manually combine them into a single column to achieve a clearer view.
 ---
