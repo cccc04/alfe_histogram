@@ -53,18 +53,16 @@ def read_json_files(file_paths, impedance):
         process_results(data, key_hg, ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
         if key_hg in data:
             results = data[key_hg]
-            uniformity_hg["gain_uniformity"].append(results.get("gain_uniformity"))
-            uniformity_hg["peaking_time_uniformity"].append(results.get("peaking_time_uniformity"))
-            uniformity_hg["baseline_uniformity"].append(results.get("baseline_uniformity"))
+            for key in uniformity_hg:
+                uniformity_hg[key].append(results.get(key))
 
         # Process LG
         key_lg = f"results_noise_{impedance}_all_ch_LG"
         process_results(data, key_lg, ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
         if key_lg in data:
             results = data[key_lg]
-            uniformity_lg["gain_uniformity"].append(results.get("gain_uniformity"))
-            uniformity_lg["peaking_time_uniformity"].append(results.get("peaking_time_uniformity"))
-            uniformity_lg["baseline_uniformity"].append(results.get("baseline_uniformity"))
+            for key in uniformity_lg:
+                uniformity_lg[key].append(results.get(key))
 
         # Process sum and linearity data
         process_results(data, f"results_noise_{impedance}_sum_x3", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"])
