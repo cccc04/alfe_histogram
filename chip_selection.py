@@ -1,4 +1,5 @@
 import json
+from socket import gaierror
 import pandas as pd
 import re
 import os
@@ -43,6 +44,9 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
                             flag = True
         return row, flag
 
+    uniformity_key = {"gain_uniformity", "peaking_time_uniformity", "baseline_uniformity"}
+    gain_ratio_key = {0, 1, 2, 3}
+    power_ldo_key = {}
 
     for file_path in file_paths:
         row = []
@@ -58,6 +62,7 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
             print(f"Warning({file_path}): No match found")
             continue
 
+        i = 0;
         for impedance in ["50", "25"]:
             keys_to_process = [
                 (f"results_noise_{impedance}_all_ch_HG", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"]),
@@ -74,11 +79,40 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
 
             for key, params in keys_to_process:
                 row_data, row_flag = process_results(data, key, params, impedance)
+                if i < 2:
+                    gain = "lg" if i == 1 else "hg"
+                    if key in data:
+                        uniformity_results = data[key]
+                        for ukey in uniformity_key:
+                            if ukey in uniformity_results:
+                                if not is_within_criteria(uniformity_results.get(ukey), gain + f"_{ukey}_{impedance}", criteria):
+                                    row.append(gain + f"_{ukey}_{impedance}: {uniformity_results.get(ukey)}")
+                                    flag = True
                 if row_data:
                     row.extend(row_data)
                 if row_flag:
                     flag = True
+            i = i + 1
 
+            if f"gain_ratio_{impedance}" in data:
+                gain_ratio_results = data[f"gain_ratio_{impedance}"]
+                if isinstance(gain_ratio_results, list):
+                    for idx, value in enumerate(gain_ratio_results):
+                        if idx in gain_ratio_key:
+                            if not is_within_criteria(gain_ratio_results[idx], f"gain_ratio_{idx}_{impedance}", criteria):
+                                row.append(f"gain_ratio_{idx}_{impedance}: {gain_ratio_results[idx]}")
+                                flag = True
+            if "power_ldo" in data:
+                for ldo in data["power_ldo"]:
+                    ldo_name = ldo.get("name")
+                    if not ldo_name:
+                        continue
+                    for key, value in ldo.items():
+                        if key == "name":
+                            continue
+                        if not is_within_criteria(value, f"{ldo_name}_{key}_{impedance}", criteria):
+                            row.append(f"{ldo_name}_{key}_{impedance}: {value}")
+                            flag = True
         # Insert Pass/Fail status at index 1
         row.insert(1, 'Fail' if flag else 'Pass')
 
