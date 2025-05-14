@@ -3,6 +3,7 @@ from socket import gaierror
 import pandas as pd
 import re
 import os
+from collections import defaultdict
 
 def apply_cuts(file_paths, criteria_file_path, output_file_path):
     # Load criteria from the JSON file
@@ -13,6 +14,7 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
     output = []
     pass_count = 0
     fail_count = 0
+    param_stats = defaultdict(lambda: {"pass": 0, "fail": 0})
 
     def is_within_criteria(value, key, criteria):
         """Check if the value is within the specified criteria."""
@@ -27,26 +29,39 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
     def process_results(data, key_suffix, params, impedance):
         row = []
         flag = False
+        g = key_suffix.split("_")[-1]
         if key_suffix in data:
             results = data[key_suffix]
             channel_list = results.get("channel_list", results.get("i2c_frequency_list", None))
             if not channel_list:
                 print(f"Warning: Neither 'channel_list' nor 'i2c_frequency_list' found in {key_suffix}")
                 return
+            failed = {}
             for idx, channel in enumerate(channel_list):
                 for param in params:
                     if param in results:
+                        if param not in failed:
+                            failed[param] = False
                         value = results[param]
                         val = value[idx] if isinstance(value, list) else value
                         criteria_key = f"{channel}_{param}_{impedance}"
                         if not is_within_criteria(val, criteria_key, criteria):
-                            row.append(criteria_key + f": {val}")
+                            row.append(f"{criteria_key}: {val}")
                             flag = True
+                            if not failed[param]:
+                                failed[param] = True
+                                param_stats[f"{param}_{impedance}_{g}"]["fail"] += 1
+            for param, failed in failed.items():
+                if not failed:
+                    param_stats[f"{param}_{impedance}_{g}"]["pass"] += 1
+        else:
+            for param in params:
+                param_stats[f"{param}_{impedance}_{g}"]["fail"] += 1
+
         return row, flag
 
     uniformity_key = {"gain_uniformity", "peaking_time_uniformity", "baseline_uniformity"}
     gain_ratio_key = {0, 1, 2, 3}
-    power_ldo_key = {}
 
     for file_path in file_paths:
         row = []
@@ -62,7 +77,6 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
             print(f"Warning({file_path}): No match found")
             continue
 
-        i = 0;
         for impedance in ["50", "25"]:
             keys_to_process = [
                 (f"results_noise_{impedance}_all_ch_HG", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"]),
@@ -76,8 +90,11 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
                 (f"results_channel_enable_{impedance}", ["gain_crude"]),
                 ("i2c_results", ["i2c_margin_list"]),
             ]
-
+            
+            i = 0;
             for key, params in keys_to_process:
+                if impedance == "50" and i == 8:
+                    continue
                 row_data, row_flag = process_results(data, key, params, impedance)
                 if i < 2:
                     gain = "lg" if i == 1 else "hg"
@@ -88,20 +105,34 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
                                 if not is_within_criteria(uniformity_results.get(ukey), gain + f"_{ukey}_{impedance}", criteria):
                                     row.append(gain + f"_{ukey}_{impedance}: {uniformity_results.get(ukey)}")
                                     flag = True
+                                    param_stats[f"{gain}_{ukey}_{impedance}"]["fail"] += 1
+                                else:
+                                    param_stats[f"{gain}_{ukey}_{impedance}"]["pass"] += 1
+                    else:
+                        for ukey in uniformity_key:
+                            param_stats[f"{gain}_{ukey}_{impedance}"]["fail"] += 1
                 if row_data:
                     row.extend(row_data)
                 if row_flag:
                     flag = True
-            i = i + 1
+                i = i + 1
 
             if f"gain_ratio_{impedance}" in data:
                 gain_ratio_results = data[f"gain_ratio_{impedance}"]
                 if isinstance(gain_ratio_results, list):
+                    failed = False
                     for idx, value in enumerate(gain_ratio_results):
                         if idx in gain_ratio_key:
                             if not is_within_criteria(gain_ratio_results[idx], f"gain_ratio_{idx}_{impedance}", criteria):
                                 row.append(f"gain_ratio_{idx}_{impedance}: {gain_ratio_results[idx]}")
                                 flag = True
+                                if not failed:
+                                    failed = True
+                                    param_stats[f"gain_ratio_{impedance}"]["fail"] += 1
+                    if not failed:
+                        param_stats[f"gain_ratio_{impedance}"]["pass"] += 1
+                else:
+                    param_stats[f"gain_ratio_{impedance}"]["fail"] += 1
             if "power_ldo" in data:
                 for ldo in data["power_ldo"]:
                     ldo_name = ldo.get("name")
@@ -113,6 +144,9 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
                         if not is_within_criteria(value, f"{ldo_name}_{key}_{impedance}", criteria):
                             row.append(f"{ldo_name}_{key}_{impedance}: {value}")
                             flag = True
+                            param_stats[f"{ldo_name}_{key}_{impedance}"]["fail"] += 1
+                        else:
+                            param_stats[f"{ldo_name}_{key}_{impedance}"]["pass"] += 1
         # Insert Pass/Fail status at index 1
         row.insert(1, 'Fail' if flag else 'Pass')
 
@@ -124,10 +158,15 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
         else:
             pass_count += 1
 
+        #if pass_count + fail_count != param_stats[f"gain_ratio_{impedance}"]["pass"] + param_stats[f"gain_ratio_{impedance}"]["fail"]:
+            #print(f"Warning({file_path}): Mismatch in pass/fail counts for gain_ratio_{impedance}")
+
 
     # Add a statistics row at the end of the dataframe
-    stats_row = ["Statistics", "", f"Passed: {pass_count}", f"Failed: {fail_count}", f"Ratio: {pass_count/(pass_count + fail_count)}"]
+    stats_row = ["Overall", "", f"Passed: {pass_count}", f"Failed: {fail_count}", f"Ratio: {pass_count/(pass_count + fail_count)}"]
     output.append(stats_row)
+    for param, stats in sorted(param_stats.items()):
+        output.append([param, "", f'Passed: {stats["pass"]}', f'{stats["fail"]}', f'Ratio: {stats["pass"]/(stats["pass"] + stats["fail"])}'])
 
     df = pd.DataFrame(output)
     df.to_csv(output_file_path, index=False)
@@ -137,7 +176,10 @@ if __name__ == '__main__':
     criteria_path = "./limits.json"
     output_path = "./results.csv"
     file_paths = []
+    filecount = 0
     for dirpath, _, filenames in os.walk(root_directory):
         if "results_all.json" in filenames:
             file_paths.append(os.path.join(dirpath, "results_all.json"))
+            filecount += 1
+    print(f"Found {filecount} files to process.")
     apply_cuts(file_paths, criteria_path, output_path)
