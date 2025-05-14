@@ -117,7 +117,7 @@ def load_bin_widths(output_directory, filename="bin_widths.json"):
         return None
 
 def load_existing_xlim(output_directory, impedance):
-    xlim_file_path = os.path.join(output_directory, f"{impedance}_xlim_limits.json")
+    xlim_file_path = os.path.join(output_directory, f"limits.json")
     if os.path.exists(xlim_file_path):
         with open(xlim_file_path, "r") as f:
             return json.load(f)  # Load existing xlim limits
@@ -135,7 +135,7 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
         for param, values in inner_dict.items():
             if values:
                 plt.figure(figsize=(10, 6))
-                full_key = f"{key_prefix}_{param}" if outer_key is None else f"{outer_key}_{param}"
+                full_key = f"{key_prefix}_{param}_{impedance}" if outer_key is None else f"{outer_key}_{param}_{impedance}"
 
                 # Default bin width
                 bw = None
