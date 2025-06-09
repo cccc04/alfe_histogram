@@ -62,6 +62,7 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
 
     uniformity_key = {"gain_uniformity", "peaking_time_uniformity", "baseline_uniformity"}
     gain_ratio_key = {0, 1, 2, 3}
+    s_n = []
 
     for file_path in file_paths:
         row = []
@@ -71,8 +72,15 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
             data = json.load(f)
 
         match = re.search(r'(\d{3}-\s\d{5})', file_path)
+        if not match:
+            match = re.search(r'(\d{3}-\d{5})', file_path)
         if match:
-            row.append(match.group(1))
+            if match.group(1) not in s_n:
+                s_n.append(match.group(1))
+                row.append(match.group(1))
+            else:
+                print(f"({file_path}): Duplicate serial number {match.group(1)} found")
+                continue
         else:
             print(f"Warning({file_path}): No match found")
             continue
@@ -148,9 +156,10 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
                         else:
                             param_stats[f"{ldo_name}_{key}_{impedance}"]["pass"] += 1
         # Insert Pass/Fail status at index 1
-        row.insert(1, 'Fail' if flag else 'Pass')
+        if flag:
+            row.insert(1, 'Fail' if flag else 'Pass')
 
-        output.append(row)
+            output.append(row)
 
         # Increment pass/fail counts
         if flag:
@@ -166,15 +175,25 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
     stats_row = ["Overall", "", f"Passed: {pass_count}", f"Failed: {fail_count}", f"Ratio: {pass_count/(pass_count + fail_count)}"]
     output.append(stats_row)
     for param, stats in sorted(param_stats.items()):
-        output.append([param, "", f'Passed: {stats["pass"]}', f'{stats["fail"]}', f'Ratio: {stats["pass"]/(stats["pass"] + stats["fail"])}'])
+        output.append([param, "", f'Passed: {stats["pass"]}', stats["fail"], f'Ratio: {stats["pass"]/(stats["pass"] + stats["fail"])}'])
 
-    df = pd.DataFrame(output)
-    df.to_csv(output_file_path, index=False)
+    # Split output into main results and statistics
+    main_results = output[:-1 * (len(param_stats) + 1)]
+    statistics_results = output[-1 * (len(param_stats) + 1):]
+
+    # Convert to DataFrames
+    df_main = pd.DataFrame(main_results)
+    df_stats = pd.DataFrame(statistics_results)
+
+    # Save to Excel with two sheets
+    with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
+        df_main.to_excel(writer, sheet_name='Results', index=False)
+        df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/"
+    root_directory = "../all/"
     criteria_path = "./limits.json"
-    output_path = "./results.csv"
+    output_path = "./results.xlsx"
     file_paths = []
     filecount = 0
     for dirpath, _, filenames in os.walk(root_directory):
@@ -182,4 +201,5 @@ if __name__ == '__main__':
             file_paths.append(os.path.join(dirpath, "results_all.json"))
             filecount += 1
     print(f"Found {filecount} files to process.")
+    file_paths.sort(reverse=True)
     apply_cuts(file_paths, criteria_path, output_path)

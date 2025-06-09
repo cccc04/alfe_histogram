@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -28,6 +29,7 @@ def read_json_files(file_paths, impedance):
     gain_ratio_values = {0: [], 1: [], 2: [], 3: []}
     uniformity_hg = {"gain_uniformity": [], "peaking_time_uniformity": [], "baseline_uniformity": []}
     uniformity_lg = {"gain_uniformity": [], "peaking_time_uniformity": [], "baseline_uniformity": []}
+    s_n = []
 
     def process_results(data, key_suffix, params):
         if key_suffix in data:
@@ -47,6 +49,19 @@ def read_json_files(file_paths, impedance):
     for file_path in file_paths:
         with open(file_path, 'r') as f:
             data = json.load(f)
+
+        match = re.search(r'(\d{3}-\d{5})', file_path)
+        if not match:
+            match = re.search(r'(\d{3}-\s\d{5})', file_path)  # Handle cases with space
+        if match:
+            if match.group(1) not in s_n:
+                s_n.append(match.group(1))
+            else:
+                print(f"({file_path}): Duplicate serial number {match.group(1)} found")
+                continue
+        else:
+            print(f"Warning({file_path}): No match found")
+            continue
 
         # Process HG
         key_hg = f"results_noise_{impedance}_all_ch_HG"
@@ -198,6 +213,6 @@ def main(root_directory, output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
-    root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/"  # Update with your actual root directory.
-    output_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/rstst/"  # Update with your desired output directory.
+    root_directory = "../all/"  # Update with your actual root directory.
+    output_directory = "../all/rstst/"  # Update with your desired output directory.
     main(root_directory, output_directory, True)
