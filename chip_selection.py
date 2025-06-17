@@ -76,6 +76,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
     uniformity_key = {"gain_uniformity", "peaking_time_uniformity", "baseline_uniformity"}
     gain_ratio_key = {0, 1, 2, 3}
     s_n = []
+    off = 0
 
     for file_path in file_paths:
         row = []
@@ -92,13 +93,13 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                 s_n.append(match.group(1))
                 row.append(match.group(1))
             else:
-                print(f"({file_path}): Duplicate serial number {match.group(1)} found")
+                #print(f"({file_path}): Duplicate serial number {match.group(1)} found")
                 continue
         else:
             print(f"Warning({file_path}): No match found")
             continue
 
-        for impedance in ["50", "25"]:
+        for impedance in ["25", "50"]:
             keys_to_process = [
                 (f"results_noise_{impedance}_all_ch_HG", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"]),
                 (f"results_noise_{impedance}_all_ch_LG", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"]),
@@ -148,23 +149,28 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                     b = False
                     for idx, value in enumerate(gain_ratio_results):
                         if idx in gain_ratio_key:
-                            j = 0
-                            for criteria in [criteria1, criteria2]:
-                                if not is_within_criteria(value, f"gain_ratio_{idx}_{impedance}", criteria):
-                                    row.append(f"gain_ratio_{idx}_{impedance}: {value}")
-                                    flag = j - 1 if flag > j - 1 else flag
-                                    if not f and j == 0:
-                                        f = True
-                                        param_stats[f"gain_ratio_{impedance}"]["F"] += 1
-                                    if j == 0: break
-                                    if not b and j == 1:
-                                        b = True
-                                        param_stats[f"gain_ratio_{impedance}"]["B"] += 1
-                                j += 1
-                    if not b and not f:
+                            if not is_within_criteria(value, f"gain_ratio_{idx}_{impedance}", criteria1):
+                                row.append(f"gain_ratio_{idx}_{impedance}: {value}")
+                                flag = min(flag, -1)
+                                f = True
+                                param_stats[f"gain_ratio_{impedance}"]["F"] += 1
+                                break
+                            elif not is_within_criteria(value, f"gain_ratio_{idx}_{impedance}", criteria2):
+                                row.append(f"gain_ratio_{idx}_{impedance}: {value}")
+                                flag = min(flag, 0)
+                                b = True
+                        else:
+                            print(f"Warning({file_path}): gain_ratio_{impedance} index {idx} not in gain_ratio_key")
+
+                    if not f and b:
+                        param_stats[f"gain_ratio_{impedance}"]["B"] += 1
+                    elif not f and not b:
                         param_stats[f"gain_ratio_{impedance}"]["A"] += 1
                 else:
-                    param_stats[f"gain_ratio_{impedance}"]["F"] += 1
+                    print(f"Warning({file_path}): gain_ratio_{impedance} is not a list")
+            else:
+                param_stats[f"gain_ratio_{impedance}"]["F"] += 1
+
             if "power_ldo" in data:
                 for ldo in data["power_ldo"]:
                     ldo_name = ldo.get("name")
@@ -183,6 +189,9 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                             j += 1
                         if j == 2:
                             param_stats[f"{ldo_name}_{key}_{impedance}"]["A"] += 1
+            else:
+                param_stats[f"{ldo_name}_{key}_{impedance}"]["F"] += 1
+                print(f"Warning({file_path}): power_ldo not found in data")
         # Insert Pass/Fail status at index 1
 
         if flag == -1:
@@ -196,10 +205,6 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         else:
             row.insert(1, 'A')
             a_count += 1
-
-
-        #if pass_count + fail_count != param_stats[f"gain_ratio_{impedance}"]["pass"] + param_stats[f"gain_ratio_{impedance}"]["fail"]:
-            #print(f"Warning({file_path}): Mismatch in pass/fail counts for gain_ratio_{impedance}")
 
 
     # Add a statistics row at the end of the dataframe
@@ -222,7 +227,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/"
+    root_directory = "../all/"
     spec_path = "./spec.json"
     B_limit_path = "./limits.json"
     output_path = "./results.xlsx"
