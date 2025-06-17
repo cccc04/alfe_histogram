@@ -1,3 +1,4 @@
+from calendar import c
 import json
 from socket import gaierror
 import pandas as pd
@@ -5,16 +6,20 @@ import re
 import os
 from collections import defaultdict
 
-def apply_cuts(file_paths, criteria_file_path, output_file_path):
+def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file_path):
     # Load criteria from the JSON file
     
-    with open(criteria_file_path, 'r') as f:
-        criteria = json.load(f)
+    with open(criteria_file_path1, 'r') as f:
+        criteria1 = json.load(f)
+    with open(criteria_file_path2, 'r') as f:
+        criteria2 = json.load(f)
 
     output = []
-    pass_count = 0
-    fail_count = 0
-    param_stats = defaultdict(lambda: {"pass": 0, "fail": 0})
+    a_count = 0
+    b_count = 0
+    f_count = 0
+    param_stats = defaultdict(lambda: {"A": 0, "B": 0, "F": 0})
+    grade = ["F", "B"]
 
     def is_within_criteria(value, key, criteria):
         """Check if the value is within the specified criteria."""
@@ -28,7 +33,7 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
 
     def process_results(data, key_suffix, params, impedance):
         row = []
-        flag = False
+        flag = 1
         g = key_suffix.split("_")[-1]
         if key_suffix in data:
             results = data[key_suffix]
@@ -36,27 +41,35 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
             if not channel_list:
                 print(f"Warning: Neither 'channel_list' nor 'i2c_frequency_list' found in {key_suffix}")
                 return
-            failed = {}
-            for idx, channel in enumerate(channel_list):
-                for param in params:
-                    if param in results:
-                        if param not in failed:
-                            failed[param] = False
-                        value = results[param]
-                        val = value[idx] if isinstance(value, list) else value
-                        criteria_key = f"{channel}_{param}_{impedance}"
-                        if not is_within_criteria(val, criteria_key, criteria):
-                            row.append(f"{criteria_key}: {val}")
-                            flag = True
-                            if not failed[param]:
-                                failed[param] = True
-                                param_stats[f"{param}_{impedance}_{g}"]["fail"] += 1
-            for param, failed in failed.items():
-                if not failed:
-                    param_stats[f"{param}_{impedance}_{g}"]["pass"] += 1
+            i = 0
+            failed = [{},{}]
+            for criteria in [criteria1, criteria2]:
+                for idx, channel in enumerate(channel_list):
+                    for param in params:
+                        if param in results:
+                            if param not in failed[i]:
+                                failed[i][param] = False
+                            value = results[param]
+                            val = value[idx] if isinstance(value, list) else value
+                            criteria_key = f"{channel}_{param}_{impedance}"
+                            if not is_within_criteria(val, criteria_key, criteria):
+                                if i == 0 or not failed[i - 1][param]:
+                                    row.append(f"{criteria_key}: {val}")
+                                    flag = i - 1  if flag > i - 1 else flag
+                                    if not failed[i][param]:
+                                        failed[i][param] = True
+                                        param_stats[f"{param}_{impedance}_{g}"][grade[i]] += 1
+                i = i + 1
+            j = -1
+            for i in range(2):
+                j = -1 * j
+                for param, param_failed in failed[1 - i].items():
+                    is_failed = param_failed if i == 0 else not param_failed
+                    if not is_failed:
+                        param_stats[f"{param}_{impedance}_{g}"]["A"] += j
         else:
             for param in params:
-                param_stats[f"{param}_{impedance}_{g}"]["fail"] += 1
+                param_stats[f"{param}_{impedance}_{g}"]["F"] += 1
 
         return row, flag
 
@@ -66,7 +79,7 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
 
     for file_path in file_paths:
         row = []
-        flag = False
+        flag = 1
 
         with open(file_path, 'r') as f:
             data = json.load(f)
@@ -110,37 +123,48 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
                         uniformity_results = data[key]
                         for ukey in uniformity_key:
                             if ukey in uniformity_results:
-                                if not is_within_criteria(uniformity_results.get(ukey), gain + f"_{ukey}_{impedance}", criteria):
-                                    row.append(gain + f"_{ukey}_{impedance}: {uniformity_results.get(ukey)}")
-                                    flag = True
-                                    param_stats[f"{gain}_{ukey}_{impedance}"]["fail"] += 1
-                                else:
-                                    param_stats[f"{gain}_{ukey}_{impedance}"]["pass"] += 1
+                                j = 0
+                                for criteria in [criteria1, criteria2]:
+                                    if not is_within_criteria(uniformity_results[ukey], gain + f"_{ukey}_{impedance}", criteria):
+                                        row.append(gain + f"_{ukey}_{impedance}: {uniformity_results[ukey]}")
+                                        flag = j - 1 if flag > j - 1 else flag
+                                        param_stats[f"{gain}_{ukey}_{impedance}"][grade[j]] += 1
+                                        break
+                                    j += 1
+                                if j == 2:
+                                    param_stats[f"{gain}_{ukey}_{impedance}"]["A"] += 1
                     else:
                         for ukey in uniformity_key:
-                            param_stats[f"{gain}_{ukey}_{impedance}"]["fail"] += 1
+                            param_stats[f"{gain}_{ukey}_{impedance}"]["F"] += 1
                 if row_data:
                     row.extend(row_data)
-                if row_flag:
-                    flag = True
+                if flag > row_flag:
+                    flag = row_flag
                 i = i + 1
-
             if f"gain_ratio_{impedance}" in data:
                 gain_ratio_results = data[f"gain_ratio_{impedance}"]
                 if isinstance(gain_ratio_results, list):
-                    failed = False
+                    f = False
+                    b = False
                     for idx, value in enumerate(gain_ratio_results):
                         if idx in gain_ratio_key:
-                            if not is_within_criteria(gain_ratio_results[idx], f"gain_ratio_{idx}_{impedance}", criteria):
-                                row.append(f"gain_ratio_{idx}_{impedance}: {gain_ratio_results[idx]}")
-                                flag = True
-                                if not failed:
-                                    failed = True
-                                    param_stats[f"gain_ratio_{impedance}"]["fail"] += 1
-                    if not failed:
-                        param_stats[f"gain_ratio_{impedance}"]["pass"] += 1
+                            j = 0
+                            for criteria in [criteria1, criteria2]:
+                                if not is_within_criteria(value, f"gain_ratio_{idx}_{impedance}", criteria):
+                                    row.append(f"gain_ratio_{idx}_{impedance}: {value}")
+                                    flag = j - 1 if flag > j - 1 else flag
+                                    if not f and j == 0:
+                                        f = True
+                                        param_stats[f"gain_ratio_{impedance}"]["F"] += 1
+                                    if j == 0: break
+                                    if not b and j == 1:
+                                        b = True
+                                        param_stats[f"gain_ratio_{impedance}"]["B"] += 1
+                                j += 1
+                    if not b and not f:
+                        param_stats[f"gain_ratio_{impedance}"]["A"] += 1
                 else:
-                    param_stats[f"gain_ratio_{impedance}"]["fail"] += 1
+                    param_stats[f"gain_ratio_{impedance}"]["F"] += 1
             if "power_ldo" in data:
                 for ldo in data["power_ldo"]:
                     ldo_name = ldo.get("name")
@@ -149,33 +173,40 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
                     for key, value in ldo.items():
                         if key == "name":
                             continue
-                        if not is_within_criteria(value, f"{ldo_name}_{key}_{impedance}", criteria):
-                            row.append(f"{ldo_name}_{key}_{impedance}: {value}")
-                            flag = True
-                            param_stats[f"{ldo_name}_{key}_{impedance}"]["fail"] += 1
-                        else:
-                            param_stats[f"{ldo_name}_{key}_{impedance}"]["pass"] += 1
+                        j = 0
+                        for criteria in [criteria1, criteria2]:
+                            if not is_within_criteria(value, f"{ldo_name}_{key}_{impedance}", criteria):
+                                row.append(f"{ldo_name}_{key}_{impedance}: {value}")
+                                flag = j - 1 if flag > j - 1 else flag
+                                param_stats[f"{ldo_name}_{key}_{impedance}"][grade[j]] += 1
+                                break
+                            j += 1
+                        if j == 2:
+                            param_stats[f"{ldo_name}_{key}_{impedance}"]["A"] += 1
         # Insert Pass/Fail status at index 1
-        if flag:
-            row.insert(1, 'Fail' if flag else 'Pass')
 
+        if flag == -1:
+            row.insert(1, 'F')
             output.append(row)
-
-        # Increment pass/fail counts
-        if flag:
-            fail_count += 1
+            f_count += 1
+        elif flag == 0:
+            row.insert(1, 'B')
+            output.append(row)
+            b_count += 1
         else:
-            pass_count += 1
+            row.insert(1, 'A')
+            a_count += 1
+
 
         #if pass_count + fail_count != param_stats[f"gain_ratio_{impedance}"]["pass"] + param_stats[f"gain_ratio_{impedance}"]["fail"]:
             #print(f"Warning({file_path}): Mismatch in pass/fail counts for gain_ratio_{impedance}")
 
 
     # Add a statistics row at the end of the dataframe
-    stats_row = ["Overall", "", f"Passed: {pass_count}", f"Failed: {fail_count}", f"Ratio: {pass_count/(pass_count + fail_count)}"]
+    stats_row = ["Overall", "", f"A: {a_count}", f"B: {b_count}", f"F: {f_count}", f"Ratio: {a_count/(a_count + b_count + f_count)}"]
     output.append(stats_row)
     for param, stats in sorted(param_stats.items()):
-        output.append([param, "", f'Passed: {stats["pass"]}', stats["fail"], f'Ratio: {stats["pass"]/(stats["pass"] + stats["fail"])}'])
+        output.append([param, "", stats["A"], stats["B"], stats["F"], f'Ratio: {stats["A"]/(stats["A"] + stats["B"] + stats["F"])}'])
 
     # Split output into main results and statistics
     main_results = output[:-1 * (len(param_stats) + 1)]
@@ -191,8 +222,9 @@ def apply_cuts(file_paths, criteria_file_path, output_file_path):
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "../all/"
-    criteria_path = "./limits.json"
+    root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/"
+    spec_path = "./spec.json"
+    B_limit_path = "./limits.json"
     output_path = "./results.xlsx"
     file_paths = []
     filecount = 0
@@ -202,4 +234,4 @@ if __name__ == '__main__':
             filecount += 1
     print(f"Found {filecount} files to process.")
     file_paths.sort(reverse=True)
-    apply_cuts(file_paths, criteria_path, output_path)
+    apply_cuts(file_paths, spec_path, B_limit_path, output_path)
