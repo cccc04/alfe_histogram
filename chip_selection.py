@@ -54,7 +54,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                             criteria_key = f"{channel}_{param}_{impedance}"
                             if not is_within_criteria(val, criteria_key, criteria):
                                 if i == 0 or not failed[i - 1][param]:
-                                    row.append(f"{criteria_key}: {val}")
+                                    row.append(f"{criteria_key}: {val} {grade[i]}")
                                     flag = i - 1  if flag > i - 1 else flag
                                     if not failed[i][param]:
                                         failed[i][param] = True
@@ -127,7 +127,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                                 j = 0
                                 for criteria in [criteria1, criteria2]:
                                     if not is_within_criteria(uniformity_results[ukey], gain + f"_{ukey}_{impedance}", criteria):
-                                        row.append(gain + f"_{ukey}_{impedance}: {uniformity_results[ukey]}")
+                                        row.append(gain + f"_{ukey}_{impedance}: {uniformity_results[ukey]} {grade[j]}")
                                         flag = j - 1 if flag > j - 1 else flag
                                         param_stats[f"{gain}_{ukey}_{impedance}"][grade[j]] += 1
                                         break
@@ -150,13 +150,13 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                     for idx, value in enumerate(gain_ratio_results):
                         if idx in gain_ratio_key:
                             if not is_within_criteria(value, f"gain_ratio_{idx}_{impedance}", criteria1):
-                                row.append(f"gain_ratio_{idx}_{impedance}: {value}")
+                                row.append(f"gain_ratio_{idx}_{impedance}: {value} F")
                                 flag = min(flag, -1)
                                 f = True
                                 param_stats[f"gain_ratio_{impedance}"]["F"] += 1
                                 break
                             elif not is_within_criteria(value, f"gain_ratio_{idx}_{impedance}", criteria2):
-                                row.append(f"gain_ratio_{idx}_{impedance}: {value}")
+                                row.append(f"gain_ratio_{idx}_{impedance}: {value} B")
                                 flag = min(flag, 0)
                                 b = True
                         else:
@@ -182,7 +182,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                         j = 0
                         for criteria in [criteria1, criteria2]:
                             if not is_within_criteria(value, f"{ldo_name}_{key}_{impedance}", criteria):
-                                row.append(f"{ldo_name}_{key}_{impedance}: {value}")
+                                row.append(f"{ldo_name}_{key}_{impedance}: {value} {grade[j]}")
                                 flag = j - 1 if flag > j - 1 else flag
                                 param_stats[f"{ldo_name}_{key}_{impedance}"][grade[j]] += 1
                                 break
