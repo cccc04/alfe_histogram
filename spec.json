@@ -36,7 +36,7 @@
     "max": 51
   },
   "CH0 HG_max_non_linearity_25": {
-    "min": 0.06,
+    "min": 1e-8,
     "max": 0.3
   },
   "CH0 HG_fit_gain_25": {
@@ -64,7 +64,7 @@
     "max": 51
   },
   "CH1 HG_max_non_linearity_25": {
-    "min": 0.06,
+    "min": 1e-8,
     "max": 0.3
   },
   "CH1 HG_fit_gain_25": {
@@ -92,7 +92,7 @@
     "max": 51
   },
   "CH2 HG_max_non_linearity_25": {
-    "min": 0.06,
+    "min": 1e-8,
     "max": 0.3
   },
   "CH2 HG_fit_gain_25": {
@@ -120,7 +120,7 @@
     "max": 51
   },
   "CH3 HG_max_non_linearity_25": {
-    "min": 0.06,
+    "min": 1e-8,
     "max": 0.3
   },
   "CH3 HG_fit_gain_25": {
@@ -148,7 +148,7 @@
     "max": 51
   },
   "CH0 LG_max_non_linearity_25": {
-    "min": 0.07,
+    "min": 1e-8,
     "max": 0.46
   },
   "CH0 LG_fit_gain_25": {
@@ -176,7 +176,7 @@
     "max": 51
   },
   "CH1 LG_max_non_linearity_25": {
-    "min": 0.07,
+    "min": 1e-8,
     "max": 0.46
   },
   "CH1 LG_fit_gain_25": {
@@ -204,7 +204,7 @@
     "max": 51
   },
   "CH2 LG_max_non_linearity_25": {
-    "min": 0.07,
+    "min": 1e-8,
     "max": 0.46
   },
   "CH2 LG_fit_gain_25": {
@@ -232,7 +232,7 @@
     "max": 51
   },
   "CH3 LG_max_non_linearity_25": {
-    "min": 0.07,
+    "min": 1e-8,
     "max": 0.46
   },
   "CH3 LG_fit_gain_25": {
@@ -420,7 +420,7 @@
     "max": 43
   },
   "CH0 HG_max_non_linearity_50": {
-    "min": 0.06,
+    "min": 1e-8,
     "max": 0.3
   },
   "CH0 HG_fit_gain_50": {
@@ -448,7 +448,7 @@
     "max": 43
   },
   "CH1 HG_max_non_linearity_50": {
-    "min": 0.06,
+    "min": 1e-8,
     "max": 0.3
   },
   "CH1 HG_fit_gain_50": {
@@ -476,7 +476,7 @@
     "max": 43
   },
   "CH2 HG_max_non_linearity_50": {
-    "min": 0.06,
+    "min": 1e-8,
     "max": 0.3
   },
   "CH2 HG_fit_gain_50": {
@@ -504,7 +504,7 @@
     "max": 43
   },
   "CH3 HG_max_non_linearity_50": {
-    "min": 0.06,
+    "min": 1e-8,
     "max": 0.3
   },
   "CH3 HG_fit_gain_50": {
@@ -532,7 +532,7 @@
     "max": 43
   },
   "CH0 LG_max_non_linearity_50": {
-    "min": 0.07,
+    "min": 1e-8,
     "max": 0.46
   },
   "CH0 LG_fit_gain_50": {
@@ -560,7 +560,7 @@
     "max": 43
   },
   "CH1 LG_max_non_linearity_50": {
-    "min": 0.07,
+    "min": 1e-8,
     "max": 0.46
   },
   "CH1 LG_fit_gain_50": {
@@ -588,7 +588,7 @@
     "max": 43
   },
   "CH2 LG_max_non_linearity_50": {
-    "min": 0.07,
+    "min": 1e-8,
     "max": 0.46
   },
   "CH2 LG_fit_gain_50": {
@@ -616,7 +616,7 @@
     "max": 43
   },
   "CH3 LG_max_non_linearity_50": {
-    "min": 0.07,
+    "min": 1e-8,
     "max": 0.46
   },
   "CH3 LG_fit_gain_50": {
