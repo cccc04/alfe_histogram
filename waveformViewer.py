@@ -306,9 +306,9 @@ def main(root_directory, output_directory, gradeExcel):
 
 if __name__ == '__main__':
    
-    root_directory = r"C:\Users\Maxx\source\repos\alfe_histogram"
-    output_directory = r"C:\Users\Maxx\source\repos\alfe_histogram\Output"
-    gradeExcel = r"C:\Users\Maxx\source\repos\alfe_histogram\results.xlsx"
+    root_directory = "\alfe_histogram"
+    output_directory = "\OutputWaveform"
+    gradeExcel = "\results.xlsx"
 
     main(root_directory, output_directory,gradeExcel)
 

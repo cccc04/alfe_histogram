@@ -227,10 +227,10 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = r"C:\Users\Maxx\source\repos\alfe_histogram"
-    spec_path = r"C:\Users\Maxx\source\repos\alfe_histogram\spec.json"
-    B_limit_path = r"C:\Users\Maxx\source\repos\alfe_histogram\limits.json"
-    output_path = r"C:\Users\Maxx\source\repos\alfe_histogram\results.xlsx"
+    root_directory = "\alfe_histogram"
+    spec_path = "\alfe_histogram\spec.json"
+    B_limit_path = "\alfe_histogram\limits.json"
+    output_path = "\alfe_histogram\results.xlsx"
     file_paths = []
     filecount = 0
     for dirpath, _, filenames in os.walk(root_directory):

@@ -212,6 +212,6 @@ def main(root_directory, output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
-    root_directory = r"C:\Users\Maxx\source\repos\alfe_histogram"
-    output_directory = r"C:\Users\Maxx\source\repos\alfe_histogram\OutputHistogram"
+    root_directory = r"\alfe_histogram"
+    output_directory = r"\alfe_histogram\OutputHistogram"
     main(root_directory, output_directory, True)
