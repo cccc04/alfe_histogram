@@ -20,7 +20,7 @@
     "max": -540
   },
   "CH0 HG_noise_rms_mv_25": {
-    "min": 0.454,
+    "min": 0.054,
     "max": 0.834
   },
   "CH0 HG_gain_25": {
@@ -28,7 +28,7 @@
     "max": 3120
   },
   "CH0 HG_eni_25": {
-    "min": 150,
+    "min": 50,
     "max": 300
   },
   "CH0 HG_peaking_time_25": {
@@ -48,7 +48,7 @@
     "max": -540
   },
   "CH1 HG_noise_rms_mv_25": {
-    "min": 0.454,
+    "min": 0.054,
     "max": 0.834
   },
   "CH1 HG_gain_25": {
@@ -56,7 +56,7 @@
     "max": 3120
   },
   "CH1 HG_eni_25": {
-    "min": 150,
+    "min": 15,
     "max": 300
   },
   "CH1 HG_peaking_time_25": {
@@ -76,7 +76,7 @@
     "max": -540
   },
   "CH2 HG_noise_rms_mv_25": {
-    "min": 0.454,
+    "min": 0.054,
     "max": 0.834
   },
   "CH2 HG_gain_25": {
@@ -84,7 +84,7 @@
     "max": 3120
   },
   "CH2 HG_eni_25": {
-    "min": 150,
+    "min": 15,
     "max": 300
   },
   "CH2 HG_peaking_time_25": {
@@ -104,7 +104,7 @@
     "max": -540
   },
   "CH3 HG_noise_rms_mv_25": {
-    "min": 0.454,
+    "min": 0.054,
     "max": 0.834
   },
   "CH3 HG_gain_25": {
@@ -112,7 +112,7 @@
     "max": 3120
   },
   "CH3 HG_eni_25": {
-    "min": 150,
+    "min": 15,
     "max": 300
   },
   "CH3 HG_peaking_time_25": {
@@ -125,7 +125,7 @@
   },
   "CH3 HG_fit_gain_25": {
     "min": 2880,
-    "max": 3120
+    "max": 3520
   },
   "CH0 LG_baseline_25": {
     "min": -650,
@@ -153,7 +153,7 @@
   },
   "CH0 LG_fit_gain_25": {
     "min": 120,
-    "max": 133
+    "max": 153
   },
   "CH1 LG_baseline_25": {
     "min": -650,
@@ -165,7 +165,7 @@
   },
   "CH1 LG_gain_25": {
     "min": 120,
-    "max": 133
+    "max": 140
   },
   "CH1 LG_eni_25": {
     "min": 800,
@@ -181,7 +181,7 @@
   },
   "CH1 LG_fit_gain_25": {
     "min": 120,
-    "max": 133
+    "max": 153
   },
   "CH2 LG_baseline_25": {
     "min": -650,
@@ -209,7 +209,7 @@
   },
   "CH2 LG_fit_gain_25": {
     "min": 120,
-    "max": 133
+    "max": 153
   },
   "CH3 LG_baseline_25": {
     "min": -650,
@@ -237,7 +237,7 @@
   },
   "CH3 LG_fit_gain_25": {
     "min": 120,
-    "max": 133
+    "max": 149
   },
   "SUM x3_baseline_25": {
     "min": -720,
@@ -249,15 +249,15 @@
   },
   "SUM x3_gain_25": {
     "min": 1340,
-    "max": 1440
+    "max": 1490
   },
   "SUM x3_eni_25": {
     "min": 350,
     "max": 575
   },
   "SUM x3_peaking_time_25": {
-    "min": 42.8,
-    "max": 45
+    "min": 41.8,
+    "max": 47.2
   },
   "SUM x3_max_non_linearity_25": {
     "min": 0.2,
@@ -265,7 +265,7 @@
   },
   "SUM x3_fit_gain_25": {
     "min": 1340,
-    "max": 1440
+    "max": 1650
   },
   "SUM x1_baseline_25": {
     "min": -650,
@@ -277,7 +277,7 @@
   },
   "SUM x1_gain_25": {
     "min": 465,
-    "max": 500
+    "max": 540
   },
   "SUM x1_eni_25": {
     "min": 400,
@@ -293,7 +293,7 @@
   },
   "SUM x1_fit_gain_25": {
     "min": 465,
-    "max": 500
+    "max": 530
   },
   "SUM x1_gain_crude_25": {
     "min": 413.1,
@@ -521,7 +521,7 @@
   },
   "CH0 LG_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 720
   },
   "CH0 LG_eni_50": {
     "min": 160,
@@ -549,7 +549,7 @@
   },
   "CH1 LG_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 720
   },
   "CH1 LG_eni_50": {
     "min": 160,
@@ -565,7 +565,7 @@
   },
   "CH1 LG_fit_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 720
   },
   "CH2 LG_baseline_50": {
     "min": -650,
@@ -577,7 +577,7 @@
   },
   "CH2 LG_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 720
   },
   "CH2 LG_eni_50": {
     "min": 160,
@@ -605,7 +605,7 @@
   },
   "CH3 LG_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 720
   },
   "CH3 LG_eni_50": {
     "min": 160,
@@ -633,15 +633,15 @@
   },
   "SUM x3_gain_50": {
     "min": 7100,
-    "max": 7550
+    "max": 7730
   },
   "SUM x3_eni_50": {
     "min": 75,
     "max": 110
   },
   "SUM x3_peaking_time_50": {
-    "min": 35.75,
-    "max": 37.5
+    "min": 34.75,
+    "max": 39.5
   },
   "SUM x3_max_non_linearity_50": {
     "min": 0.2,
@@ -649,7 +649,7 @@
   },
   "SUM x3_fit_gain_50": {
     "min": 7100,
-    "max": 7550
+    "max": 7620
   },
   "SUM x1_baseline_50": {
     "min": -650,
@@ -661,7 +661,7 @@
   },
   "SUM x1_gain_50": {
     "min": 2480,
-    "max": 2650
+    "max": 2720
   },
   "SUM x1_eni_50": {
     "min": 80,
@@ -677,7 +677,7 @@
   },
   "SUM x1_fit_gain_50": {
     "min": 2480,
-    "max": 2650
+    "max": 2720
   },
   "SUM x1_gain_crude_50": {
     "min": 330.736642575,

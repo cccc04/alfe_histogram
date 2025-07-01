@@ -1,0 +1,25 @@
+parameter name
+i2c_margin_list
+data_peaking_time
+current
+power
+LG_baseline
+HG_baseline
+LG_gain
+HG_gain
+LG_eni
+HG_eni
+LG_peaking_time
+HG_peaking_time
+LG_max_non_linearity
+HG_max_non_linearity
+gain_ratio
+uniformity
+gain_crude
+LG_fit_gain
+HG_fit_gain
+voltage
+LG_linearity
+HG_linearity
+data_noise
+sum_uniformity

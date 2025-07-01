@@ -24,12 +24,13 @@ def load_images(image_folder, parameters):
     sorted_parameters = sorted(parameters, key=lambda param: len(param), reverse=True)
 
     # Move parameters containing 'uniformity' to the front while maintaining length-based sorting
-    uniformity_params = [param for param in sorted_parameters if "uniformity" in param.lower()]
-    non_uniformity_params = [param for param in sorted_parameters if "uniformity" not in param.lower()]
+   # uniformity_params = [param for param in sorted_parameters if "uniformity" in param.lower()]
+   # non_uniformity_params = [param for param in sorted_parameters if "uniformity" not in param.lower()]
 
     # Combine them: uniformity parameters first, then the rest
-    sorted_parameters = uniformity_params + non_uniformity_params
+    #sorted_parameters = uniformity_params + non_uniformity_params
 
+    sorted_parameters = parameters
     # Iterate through all files in the folder
     for filename in os.listdir(image_folder):
         if filename.endswith('.png'):
@@ -89,38 +90,35 @@ def load_images(image_folder, parameters):
     print(f"Categorized images: {images}")  # Debugging: print the categorized images
     return images
 
-def create_presentation(images, output_pptx):
+def create_presentation(images, output_pptx, parameters):
     prs = Presentation()
     prs.slide_width = Inches(13.33)
 
-    # Adding images to slides
     def add_images_to_slide(slide, images, col):
-        left = Inches(0.05)  # Adjust left padding to remove extra space
-        top = Inches(1.0)  # Starting top position (with space for title)
-        pic_width = Inches(2.5)  # Adjust image width
-        pic_height = Inches(1.5)  # Adjust image height
+        left = Inches(0.05)
+        top = Inches(1.0)
+        pic_width = Inches(2.5)
+        pic_height = Inches(1.5)
 
-        # Arrange images in rows and columns
         for i, image in enumerate(images):
-            row = i  # Determine row
-            left_offset = left + col * pic_width  - Inches(2)# X offset for the column
-            top_offset = top + row * pic_height  # Y offset for the row
+            row = i
+            left_offset = left + col * pic_width - Inches(2)
+            top_offset = top + row * pic_height
             slide.shapes.add_picture(image, left_offset, top_offset, pic_width, pic_height)
 
-    for parameter, hg_lg_dict in images.items():
-        col = 0
-        # Create the slide layout with custom title positioning
-        slide = prs.slides.add_slide(prs.slide_layouts[6])  # Empty slide layout
-        
-        # Title text
-        slide_title = f"{parameter}"  
+    for parameter in parameters:
+        if parameter not in images:
+            continue  # Skip if no images for this parameter
 
-        # Add a textbox for the title and manually set the position
+        hg_lg_dict = images[parameter]
+        col = 0
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # Empty layout
+
+        slide_title = f"{parameter}"
         title_shape = slide.shapes.add_textbox(Inches(5.5), Inches(0.2), Inches(9), Inches(0.75))
         text_frame = title_shape.text_frame
         text_frame.text = slide_title
 
-        # Set font size for better readability
         for p in text_frame.paragraphs:
             for run in p.runs:
                 run.font.size = Inches(0.56)
@@ -128,23 +126,22 @@ def create_presentation(images, output_pptx):
         for hg_lg, suffix_dict in hg_lg_dict.items():
             for suffix, imgs in suffix_dict.items():
                 if imgs:
-                    col = col + 1 
-                    # Add images to the next column
+                    col += 1
                     add_images_to_slide(slide, imgs, col)
 
-    # Save the PowerPoint presentation
     prs.save(output_pptx)
-    print(f"Presentation saved as {output_pptx}")  # Debugging: confirm saving
+    print(f"Presentation saved as {output_pptx}")
+
 
 # Main function to drive the process
 def main(csv_file, image_folder, output_pptx):
     parameters = load_parameters(csv_file)
     images = load_images(image_folder, parameters)
-    create_presentation(images, output_pptx)
+    create_presentation(images, output_pptx,parameters)
 
 # Run the program
-csv_file = 'parameter.csv'  # Excel file containing the parameter names
-image_folder = '../BNL_Tray1_Tray4_Tray2_tray3_674/rstst/'  # Folder containing the images
-output_pptx = 'output_presentation.pptx'  # Name of the output PowerPoint file
+csv_file = 'parameterList.csv'  # Excel file containing the parameter names
+image_folder = 'Output'  # Folder containing the images
+output_pptx = 'ALFE2Presentation.pptx'  # Name of the output PowerPoint file
 
 main(csv_file, image_folder, output_pptx)

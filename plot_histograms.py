@@ -50,9 +50,8 @@ def read_json_files(file_paths, impedance):
         with open(file_path, 'r') as f:
             data = json.load(f)
 
-        match = re.search(r'(\d{3}-\d{5})', file_path)
-        if not match:
-            match = re.search(r'(\d{3}-\s\d{5})', file_path)  # Handle cases with space
+        match = re.search(r'(\d{5,9})', file_path)
+
         if match:
             if match.group(1) not in s_n:
                 s_n.append(match.group(1))
@@ -213,6 +212,6 @@ def main(root_directory, output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
-    root_directory = "../all/"  # Update with your actual root directory.
-    output_directory = "../all/rstst/"  # Update with your desired output directory.
+    root_directory = r"C:\Users\Maxx\source\repos\alfe_histogram"
+    output_directory = r"C:\Users\Maxx\source\repos\alfe_histogram\OutputHistogram"
     main(root_directory, output_directory, True)

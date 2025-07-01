@@ -83,21 +83,21 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         flag = 1
 
         with open(file_path, 'r') as f:
+            print(file_path)
             data = json.load(f)
 
-        match = re.search(r'(\d{3}-\s\d{5})', file_path)
-        if not match:
-            match = re.search(r'(\d{3}-\d{5})', file_path)
-        if match:
-            if match.group(1) not in s_n:
-                s_n.append(match.group(1))
-                row.append(match.group(1))
-            else:
-                #print(f"({file_path}): Duplicate serial number {match.group(1)} found")
-                continue
+        
+        serial_number = os.path.basename(os.path.dirname(file_path))
+        print(serial_number)
+        if serial_number not in s_n:
+            s_n.append(serial_number)
+            row.append(serial_number)
         else:
-            print(f"Warning({file_path}): No match found")
+            # print(f"({file_path}): Duplicate serial number {serial_number} found")
             continue
+
+
+
 
         for impedance in ["25", "50"]:
             keys_to_process = [
@@ -227,10 +227,10 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "../all/"
-    spec_path = "./spec.json"
-    B_limit_path = "./limits.json"
-    output_path = "./results.xlsx"
+    root_directory = r"C:\Users\Maxx\source\repos\alfe_histogram"
+    spec_path = r"C:\Users\Maxx\source\repos\alfe_histogram\spec.json"
+    B_limit_path = r"C:\Users\Maxx\source\repos\alfe_histogram\limits.json"
+    output_path = r"C:\Users\Maxx\source\repos\alfe_histogram\results.xlsx"
     file_paths = []
     filecount = 0
     for dirpath, _, filenames in os.walk(root_directory):
