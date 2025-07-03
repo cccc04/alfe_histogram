@@ -46,6 +46,66 @@ def read_json_files(file_paths, impedance):
                         val = value[idx] if isinstance(value, list) else value
                         if channel in channel_values and param in channel_values[channel]:
                             channel_values[channel][param].append(val)
+           
+    vecs = []
+    vece = []
+    def populate(vec, month, day, hour, minute, second):
+        vec.append(datetime(2025, month, day, hour, minute, second, tzinfo=timezone(timedelta(hours=-4))))
+
+    populate(vecs, 3, 28, 15, 43, 0)   # 3:43 PM = 15:43
+    populate(vece, 3, 28, 20, 48, 59)  # 8:48 PM = 20:48
+
+    # 3/31
+    populate(vecs, 3, 31, 11, 24, 0)   # 11:24 AM = 11:24
+    populate(vece, 3, 31, 22, 45, 59)  # 10:45 PM = 22:45
+
+    # 4/1
+    populate(vecs, 4, 1, 16, 26, 0)    # 4:26 PM = 16:26
+    populate(vece, 4, 2, 1, 42, 59)    # 1:42 AM next day = 4/2 01:42
+
+    # 4/2 - first interval
+    populate(vecs, 4, 2, 9, 25, 0)     # 9:25 AM = 09:25
+    populate(vece, 4, 2, 14, 2, 59)    # 2:02 PM = 14:02
+
+    # 4/2 - second interval
+    populate(vecs, 4, 2, 19, 18, 0)    # 4:56 PM = 16:56
+    populate(vece, 4, 3, 10, 58, 59)   # 10:58 AM next day = 4/3 10:58
+
+    # 4/3
+    populate(vecs, 4, 3, 15, 15, 0)    # 3:15 PM = 15:15
+    populate(vece, 4, 3, 23, 3, 59)    # 11:03 PM = 23:03
+
+    # 4/4
+    populate(vecs, 4, 4, 11, 58, 0)    # 11:58 AM = 11:58
+    populate(vece, 4, 5, 11, 36, 59)   # 11:36 AM same day
+
+    # 4/7
+    populate(vecs, 4, 7, 16, 4, 0)     # 4:04 PM = 16:04
+    populate(vece, 4, 7, 23, 45, 59)   # 11:45 PM = 23:45
+
+    # 4/9
+    populate(vecs, 4, 9, 17, 37, 0)    # 5:37 PM = 17:37
+    populate(vece, 4, 10, 3, 48, 59)   # 3:48 AM next day = 4/10 03:48
+
+    # 4/10
+    populate(vecs, 4, 10, 17, 3, 0)    # 5:03 PM = 17:03
+    populate(vece, 4, 10, 18, 14, 59)  # 6:14 PM = 18:14
+
+    # 4/24
+    populate(vecs, 4, 24, 17, 18, 0)   # 5:18 PM = 17:18
+    populate(vece, 4, 25, 2, 35, 59)   # 2:35 AM next day = 4/25 02:35
+
+    # 4/25
+    populate(vecs, 4, 25, 16, 33, 0)   # 4:33 PM = 16:33
+    populate(vece, 4, 25, 20, 33, 59)  # 8:33 PM = 20:33
+
+    # 4/28
+    populate(vecs, 4, 28, 16, 8, 0)    # 4:08 PM = 16:08
+    populate(vece, 4, 28, 20, 11, 59)  # 8:11 PM = 20:11
+
+    # 5/2
+    populate(vecs, 5, 2, 15, 44, 0)    # 3:44 PM = 15:44
+    populate(vece, 5, 2, 20, 18, 59)   # 8:18 PM = 20:18
 
     for file_path in file_paths:
         with open(file_path, 'r') as f:
@@ -53,66 +113,7 @@ def read_json_files(file_paths, impedance):
 
         stamp = int(re.search(r'(\d{10})', file_path).group(1))
         dt = datetime.fromtimestamp(stamp, tz=timezone(timedelta(hours=-4)))  # or use fromtimestamp() for local time
-       
-        vecs = []
-        vece = []
-        def populate(vec, month, day, hour, minute, second):
-            vec.append(datetime(2025, month, day, hour, minute, second, tzinfo=timezone(timedelta(hours=-4))))
 
-        populate(vecs, 3, 28, 15, 43, 0)   # 3:43 PM = 15:43
-        populate(vece, 3, 28, 20, 48, 59)  # 8:48 PM = 20:48
-
-        # 3/31
-        populate(vecs, 3, 31, 11, 24, 0)   # 11:24 AM = 11:24
-        populate(vece, 3, 31, 22, 45, 59)  # 10:45 PM = 22:45
-
-        # 4/1
-        populate(vecs, 4, 1, 16, 26, 0)    # 4:26 PM = 16:26
-        populate(vece, 4, 2, 1, 42, 59)    # 1:42 AM next day = 4/2 01:42
-
-        # 4/2 - first interval
-        populate(vecs, 4, 2, 9, 25, 0)     # 9:25 AM = 09:25
-        populate(vece, 4, 2, 14, 2, 59)    # 2:02 PM = 14:02
-
-        # 4/2 - second interval
-        populate(vecs, 4, 2, 19, 18, 0)    # 4:56 PM = 16:56
-        populate(vece, 4, 3, 10, 58, 59)   # 10:58 AM next day = 4/3 10:58
-
-        # 4/3
-        populate(vecs, 4, 3, 15, 15, 0)    # 3:15 PM = 15:15
-        populate(vece, 4, 3, 23, 3, 59)    # 11:03 PM = 23:03
-
-        # 4/4
-        populate(vecs, 4, 4, 11, 58, 0)    # 11:58 AM = 11:58
-        populate(vece, 4, 5, 11, 36, 59)   # 11:36 AM same day
-
-        # 4/7
-        populate(vecs, 4, 7, 16, 4, 0)     # 4:04 PM = 16:04
-        populate(vece, 4, 7, 23, 45, 59)   # 11:45 PM = 23:45
-
-        # 4/9
-        populate(vecs, 4, 9, 17, 37, 0)    # 5:37 PM = 17:37
-        populate(vece, 4, 10, 3, 48, 59)   # 3:48 AM next day = 4/10 03:48
-
-        # 4/10
-        populate(vecs, 4, 10, 17, 3, 0)    # 5:03 PM = 17:03
-        populate(vece, 4, 10, 18, 14, 59)  # 6:14 PM = 18:14
-
-        # 4/24
-        populate(vecs, 4, 24, 17, 18, 0)   # 5:18 PM = 17:18
-        populate(vece, 4, 25, 2, 35, 59)   # 2:35 AM next day = 4/25 02:35
-
-        # 4/25
-        populate(vecs, 4, 25, 16, 33, 0)   # 4:33 PM = 16:33
-        populate(vece, 4, 25, 20, 33, 59)  # 8:33 PM = 20:33
-
-        # 4/28
-        populate(vecs, 4, 28, 16, 8, 0)    # 4:08 PM = 16:08
-        populate(vece, 4, 28, 20, 11, 59)  # 8:11 PM = 20:11
-
-        # 5/2
-        populate(vecs, 5, 2, 15, 44, 0)    # 3:44 PM = 15:44
-        populate(vece, 5, 2, 20, 18, 59)   # 8:18 PM = 20:18
 
         out = True
         for i in range(len(vecs)):
@@ -137,18 +138,17 @@ def read_json_files(file_paths, impedance):
                 '''
                 break  # Stop checking once we've found the correct range
 
+        match = re.search(r'(\d{3}-\s\d{5})', file_path)
+        if not match:
+            match = re.search(r'(\d{3}-\d{5})', file_path)  # Handle cases with space
+
         if out:
             continue
         
-        
-        match = re.search(r'(\d{3}\d{5})', file_path)
-        if not match:
-            match = re.search(r'(\d{3}-\d{5})', file_path)  # Handle cases with space
         if match:
             if match.group(1) not in s_n:
                 s_n.append(match.group(1))
             else:
-                #print(f"({file_path}): Duplicate serial number {match.group(1)} found")
                 continue
         else:
             print(f"Warning({file_path}): No match found")
@@ -304,6 +304,6 @@ def main(root_directory, output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
-    root_directory = "../OneDrive_2025-06-30/New Data"  # Update with your actual root directory.
-    output_directory = "../all/rs1111/"  # Update with your desired output directory.
+    root_directory = "../all/"  # Update with your actual root directory.
+    output_directory = "../all/rstst/"  # Update with your desired output directory.
     main(root_directory, output_directory, True)

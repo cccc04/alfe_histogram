@@ -144,7 +144,7 @@ def main(csv_file, image_folder, output_pptx):
 
 # Run the program
 csv_file = 'parameter.csv'  # Excel file containing the parameter names
-image_folder = '../BNL_Tray1_Tray4_Tray2_tray3_674/rstst/'  # Folder containing the images
+image_folder = '../all/rstst/'  # Folder containing the images
 output_pptx = 'output_presentation.pptx'  # Name of the output PowerPoint file
 
 main(csv_file, image_folder, output_pptx)
