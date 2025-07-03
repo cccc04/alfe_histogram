@@ -1,5 +1,6 @@
 from asyncio.windows_events import NULL
 from calendar import c
+from math import e
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -66,14 +67,19 @@ def dim(a):
         return []
     return [len(a)] + dim(a[0])
 
-def plot_waveform(dataset_name, file_paths, output_directory, excelSheetGrades):
+def plot_waveform(dataset_name, file_paths, output_directory, excelSheetGrades, chipGradeSelect, idToCheck):
     
     for channel in range(4):
         plt.figure(figsize=(12, 6))  # One figure
 
         for file_path in file_paths:
-            with open(file_path, 'rb') as f:
-                data = pickle.load(f)
+            try:
+                with open(file_path, 'rb') as f:
+                    data = pickle.load(f)
+            except (EOFError, pickle.UnpicklingError) as e:
+                print(f"Skipping file due to error: {file_path} - {e}")
+                continue
+
                 #print(file_path)
             # Inspect 3D datasets
             #for key in data.keys():
@@ -95,17 +101,39 @@ def plot_waveform(dataset_name, file_paths, output_directory, excelSheetGrades):
             print(dataset_name)
             print(dim(data[dataset_name]))
             ID = (int(file_path.translate({ord(i): None for i in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:  \  _ . \n'})))
-            grade, excelSheetGrades = getGrade(excelSheetGrades,ID, dataset_name )
             
-            if grade == "A":
-                colorGrade = "Green"
-            elif grade == "B":
-                colorGrade = "Yellow"
-            elif grade == "F":
-                colorGrade = "Red"
-            else:
-                colorGrade = "Blue"
+            print(idToCheck)
+            if (str(idToCheck) != "None") and (str(ID) != str(idToCheck)):
                 print(ID)
+                print("Wrong Id")
+                continue
+
+            grade, excelSheetGrades = getGrade(excelSheetGrades,ID, dataset_name )
+            print("grading")
+            if grade == "A":
+                if "A" not in chipGradeSelect and "All" not in chipGradeSelect:
+                    print("A grading")
+                    continue
+                colorGrade = "Green"
+
+            elif grade == "B":
+                if "B" not in chipGradeSelect and "All" not in chipGradeSelect:
+                    print("B grading")
+                    continue
+                colorGrade = "Yellow"
+
+            elif grade == "F":
+                if "F" not in chipGradeSelect and "All" not in chipGradeSelect:
+                    continue
+                colorGrade = "Red"
+
+            else:
+                if "All" not in chipGradeSelect:
+                    print("all grading")
+                    continue
+                print(ID)
+                colorGrade = "Blue"
+
             #print(grade)
             
             try:
@@ -183,6 +211,12 @@ def plot_waveform(dataset_name, file_paths, output_directory, excelSheetGrades):
             else:
                 print(f"Unsupported data dimensions: {dataset.ndim}D")
                 continue
+            
+            
+            if str(ID) == str(idToCheck):
+                        print(ID)
+                        
+                        break
 
         plt.xlabel("Sample Index")
         plt.ylabel("Amplitude")
@@ -196,14 +230,15 @@ def plot_waveform(dataset_name, file_paths, output_directory, excelSheetGrades):
         
      
         #plt.show()
+        
+
 
         plt.close()
 
 
 #get the excel sheet to a simple matrix, one column with id, other chip grade, sorted so faster search
 def getGrade(gradeExcel, ID, name):
-    import pandas as pd
-    import numpy as np
+    
 
     # Load the Excel file if needed
     if not isinstance(gradeExcel, pd.DataFrame):
@@ -230,7 +265,7 @@ def getGrade(gradeExcel, ID, name):
     # Default grade
     grade = "A"
     testKeys = returnTest(name)
-    print(f"[DEBUG] testKeys: {testKeys} (type: {type(testKeys)})")
+   # print(f"[DEBUG] testKeys: {testKeys} (type: {type(testKeys)})")
 
     # Force testKeys to be a tuple
     if isinstance(testKeys, str):
@@ -295,20 +330,62 @@ def main(root_directory, output_directory, gradeExcel):
    # print(superGrade)
     #print("test over")
    # return 0
+    
+    
+    
+
+    print("Enter Test parameter you want displayed, available parameters are: ")
+
     testParameters = ["data_channel_enable_25", "data_peaking_time_25","data_noise_25_all_ch_HG_signal","data_linearity_25_all_ch_HG","data_noise_25_all_ch_LG_signal","data_linearity_25_all_ch_LG","data_noise_25_sum_x1_signal","data_linearity_25_sum_x1","data_noise_25_sum_x3_signal","data_linearity_25_sum_x3","data_sum_uniformity_25_signal","data_peaking_time_50","data_noise_50_all_ch_HG_signal","data_linearity_50_all_ch_HG","data_noise_50_all_ch_LG_signal","data_linearity_50_all_ch_LG","data_noise_50_sum_x1_signal","data_linearity_50_sum_x1","data_noise_50_sum_x3_signal","data_linearity_50_sum_x3","data_sum_uniformity_50_signal" ]
-    for parameter in testParameters:
-        print(parameter) 
-        plot_waveform(parameter,file_paths,output_directory, gradeExcel)
-   # plot_waveform("data_linearity_50_sum_x1",file_paths,output_directory, gradeExcel)
+    print('All or: ')
+    print(testParameters)    
+    inputString = input()
+    
+    print("Plot a specific ID? (Yes/No)")
+    idCheck = input()
+    if idCheck == "Yes":
+        print("Please enter ID")
+        idToCheck = input()
+        if inputString != "All":
+            plot_waveform(inputString,file_paths,output_directory, gradeExcel, "All", idToCheck)
+        else:
+            for parameter in testParameters:
+                print(parameter) 
+                plot_waveform(parameter,file_paths,output_directory, gradeExcel, "All", idToCheck)
+        
+    
+        
+
+    else: 
+        
+        print("Please enter chip grade you want displayed, available grades are:")
+        grades = "A","B","F","All"
+        print(grades)
+        chipGradeSelect = input()
+       # if chipGradeSelect not in grades:
+          #  print("not a valid grade")
+          #  return 0
+
+        if inputString == "All":
+        
+            for parameter in testParameters:
+                print(parameter) 
+                plot_waveform(parameter,file_paths,output_directory, gradeExcel, chipGradeSelect,"None")
+        elif inputString in testParameters:
+         plot_waveform(inputString,file_paths,output_directory, gradeExcel, chipGradeSelect, "None")
+     
+        else:
+            print("Please enter valid string in the test parameters")
+     
 
 
     
 
 if __name__ == '__main__':
    
-    root_directory = "\alfe_histogram"
-    output_directory = "\OutputWaveform"
-    gradeExcel = "\results.xlsx"
+    root_directory = "alfe_histogram"
+    output_directory = "Output"
+    gradeExcel = "results.xlsx"
 
     main(root_directory, output_directory,gradeExcel)
 

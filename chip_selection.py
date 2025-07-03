@@ -82,13 +82,26 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         row = []
         flag = 1
 
-        with open(file_path, 'r') as f:
-            print(file_path)
-            data = json.load(f)
+        if os.path.getsize(file_path) == 0:
+            print(f"Skipping empty file: {file_path}")
+            continue
+
+        try:
+            with open(file_path, 'r') as f:
+                print(file_path)
+                data = json.load(f)
+        except json.JSONDecodeError:
+            print(f"Skipping invalid JSON: {file_path}")
+            continue
+
 
         
         serial_number = os.path.basename(os.path.dirname(file_path))
+
         print(serial_number)
+
+        print(serial_number)
+
         if serial_number not in s_n:
             s_n.append(serial_number)
             row.append(serial_number)
@@ -227,10 +240,14 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "\alfe_histogram"
-    spec_path = "\alfe_histogram\spec.json"
-    B_limit_path = "\alfe_histogram\limits.json"
-    output_path = "\alfe_histogram\results.xlsx"
+
+    
+
+    root_directory = "alfe_histogram"
+    spec_path = "spec.json"
+    B_limit_path = "limits.json"
+    output_path = "results.xlsx"
+
     file_paths = []
     filecount = 0
     for dirpath, _, filenames in os.walk(root_directory):

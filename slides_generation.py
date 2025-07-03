@@ -1,3 +1,4 @@
+#<<<<<<< Updated upstream
 from pptx import Presentation
 from pptx.util import Inches
 import os
@@ -145,3 +146,145 @@ image_folder = 'Output'  # Folder containing the images
 output_pptx = 'ALFE2Presentation.pptx'  # Name of the output PowerPoint file
 
 main(csv_file, image_folder, output_pptx)
+#=======
+from pptx import Presentation
+from pptx.util import Inches
+import os
+import pandas as pd
+
+# Function to load parameters from the Excel file
+def load_parameters(csv_file):
+    df = pd.read_csv(csv_file)
+    parameter = df['parameter name']
+    raw_parameters = parameter.dropna().astype(str).tolist()
+
+    # Create a mapping of normalized names to original names
+    def normalize(s):
+        return s.strip().lower().replace('_', ' ').replace('-', ' ')
+
+    normalized_to_original = {normalize(p): p for p in raw_parameters}
+    normalized_list = list(normalized_to_original.keys())  # preserve order
+
+    print(f"Loaded parameters: {raw_parameters}")
+    return raw_parameters, normalized_to_original, normalized_list
+
+
+# Function to load image files and categorize them by parameter, HG/LG, and 25/50
+def load_images(image_folder, normalized_list, normalized_to_original):
+    images = {}
+    matched_images = set()
+
+    for filename in os.listdir(image_folder):
+        if filename.endswith('.png'):
+            filename_norm = filename.lower().replace('_', ' ').replace('-', ' ')
+            matching_keys = [norm for norm in normalized_list if norm in filename_norm]
+
+            if not matching_keys:
+                continue
+
+            key = matching_keys[0]
+            parameter = normalized_to_original[key]  # get pretty name
+
+            if filename in matched_images and 'uniformity' not in filename:
+                continue
+            matched_images.add(filename)
+
+            if 'HG' in filename or 'hg' in filename:
+                hg_lg = 'HG'
+            elif 'LG' in filename or 'lg' in filename:
+                hg_lg = 'LG'
+            else:
+                hg_lg = None
+
+            if '25' in filename:
+                suffix = '25'
+            elif '50' in filename:
+                suffix = '50'
+            else:
+                suffix = None
+
+            if parameter not in images:
+                images[parameter] = {
+                    'HG': {'25': [], '50': [], 'None': []}, 
+                    'LG': {'25': [], '50': [], 'None': []}, 
+                    'None': {'25': [], '50': [], 'None': []}
+                }
+
+            image_path = os.path.join(image_folder, filename)
+            if not os.path.exists(image_path):
+                print(f"Image not found: {image_path}")
+                continue
+
+            if hg_lg and suffix:
+                images[parameter][hg_lg][suffix].append(image_path)
+            elif suffix:
+                images[parameter]['None'][suffix].append(image_path)
+            else:
+                images[parameter]['None']['None'].append(image_path)
+
+    return images
+
+
+def create_presentation(images, output_pptx, parameters):
+    prs = Presentation()
+    prs.slide_width = Inches(13.33)
+
+    def add_images_to_slide(slide, images, max_images_per_col=3):
+        left_start = Inches(0.2)
+        top_start = Inches(1.0)
+        pic_width = Inches(3.2)
+        pic_height = Inches(1.9)
+
+        for idx, image_path in enumerate(images):
+            col = idx // max_images_per_col
+            row = idx % max_images_per_col
+
+            left = left_start + col * pic_width
+            top = top_start + row * pic_height
+
+            slide.shapes.add_picture(image_path, left, top, pic_width, pic_height)
+
+
+    for parameter in parameters:
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        title_shape = slide.shapes.add_textbox(Inches(5.5), Inches(0.2), Inches(9), Inches(0.75))
+        text_frame = title_shape.text_frame
+        text_frame.text = parameter
+        for p in text_frame.paragraphs:
+            for run in p.runs:
+                run.font.size = Inches(0.56)
+
+        if parameter not in images:
+            continue
+
+        #  Flatten images for this parameter
+        all_imgs = []
+        for hg_lg_dict in images[parameter].values():
+            for img_list in hg_lg_dict.values():
+                all_imgs.extend(img_list)
+
+        if not all_imgs:
+            continue
+
+        add_images_to_slide(slide, all_imgs, max_images_per_col=3)
+
+
+    prs.save(output_pptx)
+    print(f"Presentation saved as {output_pptx}")
+
+
+
+# Main function to drive the process
+def main(csv_file, image_folder, output_pptx):
+    parameters, norm_map, normalized_list = load_parameters(csv_file)
+    images = load_images(image_folder, normalized_list, norm_map)
+    create_presentation(images, output_pptx, parameters)
+
+
+# Run the program
+csv_file = 'parameterList.csv'  # Excel file containing the parameter names
+image_folder = 'Output'  # Folder containing the images
+output_pptx = 'ALFE2Presentation.pptx'  # Name of the output PowerPoint file
+
+main(csv_file, image_folder, output_pptx)
+#>>>>>>> Stashed changes
