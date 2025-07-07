@@ -6,7 +6,7 @@ import re
 import os
 from collections import defaultdict
 
-def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file_path):
+def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file_path, empty_paths):
     # Load criteria from the JSON file
     
     with open(criteria_file_path1, 'r') as f:
@@ -77,6 +77,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
     gain_ratio_key = {0, 1, 2, 3}
     s_n = []
     off = 0
+    dup = 0
 
     for file_path in file_paths:
         row = []
@@ -94,6 +95,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                 row.append(match.group(1))
             else:
                 #print(f"({file_path}): Duplicate serial number {match.group(1)} found")
+                dup += 1
                 continue
         else:
             print(f"Warning({file_path}): No match found")
@@ -206,12 +208,33 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
             row.insert(1, 'A')
             a_count += 1
 
+    empty_count = 0
+    for file_path in empty_paths:
+        row = []
 
+        match = re.search(r'(\d{3}-\s\d{5})', file_path)
+        if not match:
+            match = re.search(r'(\d{3}-\d{5})', file_path)
+        if match:
+            if match.group(1) not in s_n:
+                s_n.append(match.group(1))
+                row.append(match.group(1))
+            else:
+                print(f"({file_path}): Duplicate serial number {match.group(1)} found")
+                dup += 1
+                continue
+        else:
+            print(f"Warning({file_path}): No match found")
+            continue
+        row.extend("F")
+        output.append(row)
+        f_count += 1
+        empty_count += 1
     # Add a statistics row at the end of the dataframe
     stats_row = ["Overall", "", f"A: {a_count}", f"B: {b_count}", f"F: {f_count}", f"Ratio: {a_count/(a_count + b_count + f_count)}"]
     output.append(stats_row)
     for param, stats in sorted(param_stats.items()):
-        output.append([param, "", stats["A"], stats["B"], stats["F"], f'Ratio: {stats["A"]/(stats["A"] + stats["B"] + stats["F"])}'])
+        output.append([param, "", stats["A"], stats["B"], stats["F"] + empty_count, f'Ratio: {stats["A"]/(stats["A"] + stats["B"] + stats["F"] + empty_count)}'])
 
     # Split output into main results and statistics
     main_results = output[:-1 * (len(param_stats) + 1)]
@@ -227,16 +250,22 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "../all/"
+    root_directory = "../cleaned/"
     spec_path = "./spec.json"
     B_limit_path = "./limits.json"
     output_path = "./results.xlsx"
     file_paths = []
+    empty_paths = []
     filecount = 0
     for dirpath, _, filenames in os.walk(root_directory):
         if "results_all.json" in filenames:
             file_paths.append(os.path.join(dirpath, "results_all.json"))
             filecount += 1
+        elif "metadata.json" in filenames:
+            empty_paths.append(dirpath)
+            filecount += 1
+        else:
+            print(f"Warning: No results_all.json or metadata.json found in {dirpath}")
     print(f"Found {filecount} files to process.")
     file_paths.sort(reverse=True)
-    apply_cuts(file_paths, spec_path, B_limit_path, output_path)
+    apply_cuts(file_paths, spec_path, B_limit_path, output_path, empty_paths)
