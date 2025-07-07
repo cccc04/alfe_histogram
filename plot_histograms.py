@@ -1,3 +1,4 @@
+from calendar import c
 import json
 import os
 import re
@@ -17,8 +18,8 @@ def read_json_files(file_paths, impedance):
     
     # List of channels found in the JSON files
     channels = [
-        "CH0 HG", "CH1 HG", "CH2 HG", "CH3 HG", 
-        "CH0 LG", "CH1 LG", "CH2 LG", "CH3 LG", 
+        "ALL CH HG",
+        "ALL CH LG", 
         "SUM x3", "SUM x1", "LG0", "LG1", "LG2", "LG3", 
         "HG0", "HG1", "HG2", "HG3", "400_kHz", "1_MHz"
     ]
@@ -30,6 +31,8 @@ def read_json_files(file_paths, impedance):
     uniformity_hg = {"gain_uniformity": [], "peaking_time_uniformity": [], "baseline_uniformity": []}
     uniformity_lg = {"gain_uniformity": [], "peaking_time_uniformity": [], "baseline_uniformity": []}
     s_n = []
+    channel_hg = ["CH0 HG", "CH1 HG", "CH2 HG", "CH3 HG"]
+    channel_lg = ["CH0 LG", "CH1 LG", "CH2 LG", "CH3 LG"]
 
     def process_results(data, key_suffix, params):
         if key_suffix in data:
@@ -43,6 +46,10 @@ def read_json_files(file_paths, impedance):
                     if param in results:
                         value = results[param]
                         val = value[idx] if isinstance(value, list) else value
+                        if channel in channel_hg:
+                            channel = "ALL CH HG"
+                        elif channel in channel_lg:
+                            channel = "ALL CH LG"
                         if channel in channel_values and param in channel_values[channel]:
                             channel_values[channel][param].append(val)
 
@@ -152,6 +159,9 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
                 plt.figure(figsize=(10, 6))
                 full_key = f"{key_prefix}_{param}_{impedance}" if outer_key is None else f"{outer_key}_{param}_{impedance}"
 
+                if "ALL CH" in full_key:
+                    full_key = full_key.replace("ALL CH", "CH0")
+
                 # Default bin width
                 bw = None
 
@@ -213,6 +223,6 @@ def main(root_directory, output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
-    root_directory = "../all/"  # Update with your actual root directory.
-    output_directory = "../all/rstst/"  # Update with your desired output directory.
+    root_directory = "../cleaned/"  # Update with your actual root directory.
+    output_directory = "../cleaned/rs/"  # Update with your desired output directory.
     main(root_directory, output_directory, True)
