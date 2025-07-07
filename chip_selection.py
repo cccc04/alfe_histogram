@@ -84,7 +84,11 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         flag = 1
 
         with open(file_path, 'r') as f:
-            data = json.load(f)
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON from {file_path}: {e}")
+                continue
 
         match = re.search(r'(\d{3}-\s\d{5})', file_path)
         if not match:
