@@ -90,9 +90,9 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                 print(f"Error decoding JSON from {file_path}: {e}")
                 continue
 
-        match = re.search(r'(\d{3}-\s\d{5})', file_path)
+        match = re.search(r'(\d{8})', file_path)
         if not match:
-            match = re.search(r'(\d{3}-\d{5})', file_path)
+            match = re.search(r'(\d{6})', file_path)
         if match:
             if match.group(1) not in s_n:
                 s_n.append(match.group(1))
@@ -216,9 +216,9 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
     for file_path in empty_paths:
         row = []
 
-        match = re.search(r'(\d{3}-\s\d{5})', file_path)
+        match = re.search(r'(\d{8})', file_path)
         if not match:
-            match = re.search(r'(\d{3}-\d{5})', file_path)
+            match = re.search(r'(\d{6})', file_path)
         if match:
             if match.group(1) not in s_n:
                 s_n.append(match.group(1))
@@ -254,7 +254,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "../cleaned/"
+    root_directory = "../0603_0611/"
     spec_path = "./spec.json"
     B_limit_path = "./limits.json"
     output_path = "./results.xlsx"

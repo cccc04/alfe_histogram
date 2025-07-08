@@ -55,11 +55,15 @@ def read_json_files(file_paths, impedance):
 
     for file_path in file_paths:
         with open(file_path, 'r') as f:
-            data = json.load(f)
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON from {file_path}: {e}")
+                continue
 
-        match = re.search(r'(\d{3}-\d{5})', file_path)
+        match = re.search(r'(\d{8})', file_path)
         if not match:
-            match = re.search(r'(\d{3}-\s\d{5})', file_path)  # Handle cases with space
+            match = re.search(r'(\d{6})', file_path)
         if match:
             if match.group(1) not in s_n:
                 s_n.append(match.group(1))
@@ -223,6 +227,6 @@ def main(root_directory, output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
-    root_directory = "../cleaned/"  # Update with your actual root directory.
-    output_directory = "../cleaned/rs/"  # Update with your desired output directory.
+    root_directory = "../0603_0611/"  # Update with your actual root directory.
+    output_directory = "../0603_0611/rs/"  # Update with your desired output directory.
     main(root_directory, output_directory, True)
