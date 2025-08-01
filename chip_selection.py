@@ -2,9 +2,11 @@ from calendar import c
 import json
 from socket import gaierror
 import pandas as pd
+import numpy as np
 import re
 import os
 from collections import defaultdict
+from datetime import datetime
 
 def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file_path, empty_paths):
     # Load criteria from the JSON file
@@ -15,6 +17,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         criteria2 = json.load(f)
 
     output = []
+    output1 = []
     a_count = 0
     b_count = 0
     f_count = 0
@@ -89,22 +92,46 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON from {file_path}: {e}")
                 continue
-
-        match = re.search(r'(\d{3}-\s\d{5})', file_path)
+        
+        match = re.search(r'(\d{8})', file_path)
+        match_str = None
         if not match:
-            match = re.search(r'(\d{3}-\d{5})', file_path)
+            match = re.search(r'(\d{6})', file_path)
+            if match:
+                match_str = match.group(1)
+                match_str = "00" + match_str
+            else:
+                match_str = None
         if match:
             if match.group(1) not in s_n:
                 s_n.append(match.group(1))
                 row.append(match.group(1))
             else:
-                #print(f"({file_path}): Duplicate serial number {match.group(1)} found")
+                print(f"({file_path}): Duplicate serial number {match.group(1)} found")
                 dup += 1
                 continue
         else:
             print(f"Warning({file_path}): No match found")
             continue
 
+        if "test_time" in data:
+
+            date_parts = data["test_time"].split('_')[:3]  # ['13', '06', '25']
+            date_str = f"{date_parts[0]}-{date_parts[1]}-{date_parts[2]}"  # '13-06-25'
+            date_obj = datetime.strptime(date_str, "%d-%m-%y")  # dd-mm-yy
+
+            # Define cutoff date (e.g., June 7, 2025)
+            cutoff_date = datetime(year=date_obj.year, month=6, day=11)
+
+            # Check if it's later
+            if date_obj < cutoff_date:
+                print(f"skipping file")
+                continue
+        else:
+            print(f"Warning: 'test_time' not found in {file_path}, skipping file")
+            continue
+        
+        output1.append(match_str) if match_str != None else output1.append(match.group(1))
         for impedance in ["25", "50"]:
             keys_to_process = [
                 (f"results_noise_{impedance}_all_ch_HG", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"]),
@@ -215,10 +242,10 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
     empty_count = 0
     for file_path in empty_paths:
         row = []
-
-        match = re.search(r'(\d{3}-\s\d{5})', file_path)
+        
+        match = re.search(r'(\d{8})', file_path)
         if not match:
-            match = re.search(r'(\d{3}-\d{5})', file_path)
+            match = re.search(r'(\d{6})', file_path)
         if match:
             if match.group(1) not in s_n:
                 s_n.append(match.group(1))
@@ -230,6 +257,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         else:
             print(f"Warning({file_path}): No match found")
             continue
+        
         row.extend("F")
         output.append(row)
         f_count += 1
@@ -254,7 +282,7 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "../cleaned/"
+    root_directory = "../0603_0611/"
     spec_path = "./spec.json"
     B_limit_path = "./limits.json"
     output_path = "./results.xlsx"

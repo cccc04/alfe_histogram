@@ -2,7 +2,9 @@ import json
 import os
 import re
 import matplotlib.pyplot as plt
+from scipy.stats import norm, skewnorm
 import numpy as np
+from datetime import datetime
 
 # Fixed number of bins (e.g., 20 bins)
 N_BINS = 20
@@ -48,8 +50,13 @@ def read_json_files(file_paths, impedance):
 
     for file_path in file_paths:
         with open(file_path, 'r') as f:
-            data = json.load(f)
-
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON from {file_path}: {e}")
+                continue
+        
+        '''
         match = re.search(r'(\d{3}-\d{5})', file_path)
         if not match:
             match = re.search(r'(\d{3}-\s\d{5})', file_path)  # Handle cases with space
@@ -61,6 +68,23 @@ def read_json_files(file_paths, impedance):
                 continue
         else:
             print(f"Warning({file_path}): No match found")
+            continue
+        '''
+        if "test_time" in data:
+
+            date_parts = data["test_time"].split('_')[:3]  # ['13', '06', '25']
+            date_str = f"{date_parts[0]}-{date_parts[1]}-{date_parts[2]}"  # '13-06-25'
+            date_obj = datetime.strptime(date_str, "%d-%m-%y")  # dd-mm-yy
+
+            # Define cutoff date (e.g., June 7, 2025)
+            cutoff_date = datetime(year=date_obj.year, month=6, day=7)
+
+            # Check if it's later
+            if date_obj < cutoff_date:
+                print(f"skipping file")
+                continue
+        else:
+            print(f"Warning: 'test_time' not found in {file_path}, skipping file")
             continue
 
         # Process HG
@@ -138,9 +162,9 @@ def load_existing_xlim(output_directory, impedance):
             return json.load(f)  # Load existing xlim limits
     return {}  # Return an empty dictionary if no existing file is found
 
-def plot_histograms(data_dict, output_directory, root_directory, impedance, label, key_prefix, histogram_type, xlimb):
+def plot_histograms(data_dict, output_directory, root_directory, impedance, label, key_prefix, histogram_type, xlimb, show_fit=True):
     if xlimb:
-        xlim_limits = load_existing_xlim(root_directory, impedance)
+        lim_limits = load_existing_xlim(root_directory, impedance)
 
     for outer_key, inner_dict in data_dict.items():
         if not isinstance(inner_dict, dict):
@@ -149,40 +173,78 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
 
         for param, values in inner_dict.items():
             if values:
-                plt.figure(figsize=(10, 6))
+                fig, ax1 = plt.subplots(figsize=(10, 6))
                 full_key = f"{key_prefix}_{param}_{impedance}" if outer_key is None else f"{outer_key}_{param}_{impedance}"
 
-                # Default bin width
+                use_skew = 'uniformity' in full_key.lower()
+                
+                p5, p95 = np.percentile(values, [5, 95])
+                filtered = [v for v in values if p5 <= v <= p95]
+                if use_skew:
+                    a, loc, scale = skewnorm.fit(filtered)
+                    fit_label = f'Skew-Normal Fit\n$\mu$={loc:.3g}, $\sigma$={scale:.3g}'
+                    mu, sigma = loc, scale  # For setting x-limits
+                else:
+                    mu, sigma = norm.fit(filtered)
+                    fit_label = f'Gaussian Fit\n$\mu$={mu:.3g}, $\sigma$={sigma:.3g}'
+                
+
+                # Default bin width and bins
                 bw = None
+                bins = N_BINS
 
-                # If no custom bin width and xlimb is enabled, compute it from xlim
-                if xlimb and full_key in xlim_limits:
-                    xlim = xlim_limits[full_key]
-                    bw = (xlim["max"] - xlim["min"]) / N_BINS
+                if xlimb and full_key in lim_limits:
+                    lim = lim_limits[full_key]
 
-                # Compute bins
-                bins = np.arange(min(values), max(values) + bw, bw) if bw else N_BINS
-                plt.hist(values, bins=bins, alpha=0.7)
+                # Adjust x-axis to �5? if xlim is not provided
+                if use_skew:
+                    xlim = {
+                        "min": -0.05,
+                        "max": mu + 5 * sigma
+                    }
+                else:
+                    xlim = {
+                        "min": mu - 5 * sigma,
+                        "max": mu + 5 * sigma
+                    }
+                
+                bw = (xlim["max"] - xlim["min"]) / (N_BINS + 10)
+                bins = np.arange(min(values), max(values) + bw, bw)
 
-                # Draw x-limits and markers if xlim enabled
-                if xlimb and full_key in xlim_limits:
-                    xlim = xlim_limits[full_key]
-                    plt.xlim(xlim["min"] - 0.125 * (xlim["max"] - xlim["min"]),
-                             xlim["max"] + 0.125 * (xlim["max"] - xlim["min"]))
-    
-                    # Add vertical lines with formatted labels
-                    plt.axvline(x=xlim["min"], color='red', linestyle='--', label=f'min: {xlim["min"]:.2f}')
-                    plt.axvline(x=xlim["max"], color='red', linestyle='--', label=f'max: {xlim["max"]:.2f}')
-    
-                    plt.legend(loc='upper right', fontsize=14)
+                if not xlimb:
+                    bins = np.linspace(xlim["min"], xlim["max"], N_BINS)
+
+                # Plot histogram
+                counts, bins_, patches = ax1.hist(values, bins=bins, alpha=0.7, density=False, label='Count')
+                ax1.set_ylabel('Count')
+                ax1.tick_params(axis='y')
+
+                ax2 = ax1.twinx()
+                ax2.hist(values, bins=bins, alpha=0, density=True)  # invisible histogram for scaling
+                ax2.set_ylabel('Probability Density')
+                ax2.tick_params(axis='y')
+
+                # Gaussian curve
+                if show_fit:
+                    x = np.linspace(xlim["min"], xlim["max"], 1000)
+                    y = skewnorm.pdf(x, a, loc, scale) if use_skew else norm.pdf(x, mu, sigma)
+                    ax2.plot(x, y, 'k--', label=fit_label)
+
+                # X limits and vertical lines
+                plt.xlim(xlim["min"] ,
+                         xlim["max"] )
+
+                if xlimb and full_key in lim_limits:
+                    plt.axvline(x=lim["min"], color='red', linestyle='--', label=f'min: {lim["min"]:.2f}')
+                    plt.axvline(x=lim["max"], color='red', linestyle='--', label=f'max: {lim["max"]:.2f}')
                 elif xlimb:
                     print(f"xlim for {full_key} does not exist in file")
 
                 title_key = f"{label} {param}" if outer_key is None else f"{param} for {outer_key}"
                 plt.title(f"{title_key} - {impedance}")
                 plt.xlabel(param)
-                plt.ylabel("Count")
                 plt.grid(True)
+                plt.legend(loc='upper right', fontsize=12)
                 plt.tight_layout()
 
                 filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if outer_key is None \
@@ -213,6 +275,6 @@ def main(root_directory, output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
-    root_directory = "../all/"  # Update with your actual root directory.
-    output_directory = "../all/rstst/"  # Update with your desired output directory.
+    root_directory = "../0603_0611/"  # Update with your actual root directory.
+    output_directory = "../0603_0611/rstst1/"  # Update with your desired output directory.
     main(root_directory, output_directory, True)

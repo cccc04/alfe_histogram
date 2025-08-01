@@ -45,8 +45,23 @@ def read_json_file(file_paths):
 
     for file_path in file_paths:
         with open(file_path, 'r') as f:
-            data = json.load(f)
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON from {file_path}: {e}")
+                continue
             if "test_time" in data:
+                date_parts = data["test_time"].split('_')[:3]  # ['13', '06', '25']
+                date_str = f"{date_parts[0]}-{date_parts[1]}-{date_parts[2]}"  # '13-06-25'
+                date_obj = datetime.datetime.strptime(date_str, "%d-%m-%y")  # dd-mm-yy
+
+                # Define cutoff date (e.g., June 7, 2025)
+                cutoff_date = datetime.datetime(year=date_obj.year, month=6, day=7)
+
+                # Check if it's later
+                if date_obj < cutoff_date:
+                    print(f"skipping file")
+                    continue
                 raw_time = data["test_time"]
             else:
                 print("Key 'test_time' not found in data")
@@ -139,8 +154,8 @@ def plot_baseline_timeplot(channel_values, hour_values, y, output_directory):
 
 if __name__ == '__main__':
     # Example usage
-    root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/Nevis_Tray2_Tray3_355/GradeA_Tray3_173"
-    output_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/t3/"
+    root_directory = "../0603_0611/"
+    output_directory = "../0603_0611/t0/"
     # Collect all results_all.json file paths.
     file_paths = []
     for dirpath, _, filenames in os.walk(root_directory):
