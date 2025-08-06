@@ -105,6 +105,12 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
             print(f"Warning({file_path}): No match found")
             continue
 
+        ts = re.search(r'(_\d{10})', file_path)
+        if not ts:
+            print(f"Warning({file_path}): No timestamp found")
+        else:
+            row.append(ts.group(1)[1:])
+
         for impedance in ["25", "50"]:
             keys_to_process = [
                 (f"results_noise_{impedance}_all_ch_HG", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"]),
@@ -254,10 +260,10 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         df_stats.to_excel(writer, sheet_name='Statistics', index=False)
 
 if __name__ == '__main__':
-    root_directory = "../cleaned/"
+    root_directory = "../July/2025-08-01"
     spec_path = "./spec.json"
     B_limit_path = "./limits.json"
-    output_path = "./results.xlsx"
+    output_path = "./results01.xlsx"
     file_paths = []
     empty_paths = []
     filecount = 0

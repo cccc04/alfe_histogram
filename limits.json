@@ -16,19 +16,19 @@
     "max": 24
   },
   "CH0 HG_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH0 HG_noise_rms_mv_25": {
-    "min": 0.35,
-    "max": 0.834
+    "min": 1e-8,
+    "max":1e+8
   },
   "CH0 HG_gain_25": {
-    "min": 2880,
-    "max": 3120
+    "min": 2400,
+    "max": 3600
   },
   "CH0 HG_eni_25": {
-    "min": 150,
+    "min": 1e-8,
     "max": 300
   },
   "CH0 HG_peaking_time_25": {
@@ -37,26 +37,26 @@
   },
   "CH0 HG_max_non_linearity_25": {
     "min": 1e-8,
-    "max": 0.3
+    "max": 0.2
   },
   "CH0 HG_fit_gain_25": {
-    "min": 2880,
-    "max": 3120
+    "min": 2400,
+    "max": 3600
   },
   "CH1 HG_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH1 HG_noise_rms_mv_25": {
-    "min": 0.35,
-    "max": 0.834
+    "min": 1e-8,
+    "max":1e+8
   },
   "CH1 HG_gain_25": {
-    "min": 2880,
-    "max": 3120
+    "min": 2400,
+    "max": 3600
   },
   "CH1 HG_eni_25": {
-    "min": 150,
+    "min": 1e-8,
     "max": 300
   },
   "CH1 HG_peaking_time_25": {
@@ -65,26 +65,26 @@
   },
   "CH1 HG_max_non_linearity_25": {
     "min": 1e-8,
-    "max": 0.3
+    "max": 0.2
   },
   "CH1 HG_fit_gain_25": {
-    "min": 2880,
-    "max": 3120
+    "min": 2400,
+    "max": 3600
   },
   "CH2 HG_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH2 HG_noise_rms_mv_25": {
-    "min": 0.35,
-    "max": 0.834
+    "min": 1e-8,
+    "max":1e+8
   },
   "CH2 HG_gain_25": {
-    "min": 2880,
-    "max": 3120
+    "min": 2400,
+    "max": 3600
   },
   "CH2 HG_eni_25": {
-    "min": 150,
+    "min": 1e-8,
     "max": 300
   },
   "CH2 HG_peaking_time_25": {
@@ -93,26 +93,26 @@
   },
   "CH2 HG_max_non_linearity_25": {
     "min": 1e-8,
-    "max": 0.3
+    "max": 0.2
   },
   "CH2 HG_fit_gain_25": {
-    "min": 2880,
-    "max": 3120
+    "min": 2400,
+    "max": 3600
   },
   "CH3 HG_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH3 HG_noise_rms_mv_25": {
-    "min": 0.35,
-    "max": 0.834
+    "min": 1e-8,
+    "max":1e+8
   },
   "CH3 HG_gain_25": {
-    "min": 2880,
-    "max": 3120
+    "min": 2400,
+    "max": 3600
   },
   "CH3 HG_eni_25": {
-    "min": 150,
+    "min": 1e-8,
     "max": 300
   },
   "CH3 HG_peaking_time_25": {
@@ -121,27 +121,27 @@
   },
   "CH3 HG_max_non_linearity_25": {
     "min": 1e-8,
-    "max": 0.3
+    "max": 0.2
   },
   "CH3 HG_fit_gain_25": {
-    "min": 2880,
-    "max": 3120
+    "min": 2400,
+    "max": 3600
   },
   "CH0 LG_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH0 LG_noise_rms_mv_25": {
-    "min": 0.104,
-    "max": 0.162
+    "min": 1e-8,
+    "max": 1e+8
   },
   "CH0 LG_gain_25": {
-    "min": 120,
-    "max": 135
+    "min": 110,
+    "max": 160
   },
   "CH0 LG_eni_25": {
-    "min": 800,
-    "max": 1400
+    "min": 1e-8,
+    "max": 1600
   },
   "CH0 LG_peaking_time_25": {
     "min": 44.5,
@@ -152,23 +152,23 @@
     "max": 0.46
   },
   "CH0 LG_fit_gain_25": {
-    "min": 120,
-    "max": 135
+    "min": 110,
+    "max": 160
   },
   "CH1 LG_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH1 LG_noise_rms_mv_25": {
-    "min": 0.104,
-    "max": 0.162
+    "min": 1e-8,
+    "max": 1e+8
   },
   "CH1 LG_gain_25": {
-    "min": 120,
-    "max": 135
+    "min": 110,
+    "max": 160
   },
   "CH1 LG_eni_25": {
-    "min": 800,
+    "min": 1e-8,
     "max": 1400
   },
   "CH1 LG_peaking_time_25": {
@@ -180,23 +180,23 @@
     "max": 0.46
   },
   "CH1 LG_fit_gain_25": {
-    "min": 120,
-    "max": 135
+    "min": 110,
+    "max": 160
   },
   "CH2 LG_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH2 LG_noise_rms_mv_25": {
-    "min": 0.104,
-    "max": 0.162
+    "min": 1e-8,
+    "max": 1e+8
   },
   "CH2 LG_gain_25": {
-    "min": 120,
-    "max": 135
+    "min": 110,
+    "max": 160
   },
   "CH2 LG_eni_25": {
-    "min": 800,
+    "min": 1e-8,
     "max": 1400
   },
   "CH2 LG_peaking_time_25": {
@@ -208,23 +208,23 @@
     "max": 0.46
   },
   "CH2 LG_fit_gain_25": {
-    "min": 120,
-    "max": 135
+    "min": 110,
+    "max": 160
   },
   "CH3 LG_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH3 LG_noise_rms_mv_25": {
-    "min": 0.104,
-    "max": 0.162
+    "min": 1e-8,
+    "max": 1e+8
   },
   "CH3 LG_gain_25": {
-    "min": 120,
-    "max": 135
+    "min": 110,
+    "max": 160
   },
   "CH3 LG_eni_25": {
-    "min": 800,
+    "min": 1e-8,
     "max": 1400
   },
   "CH3 LG_peaking_time_25": {
@@ -236,8 +236,8 @@
     "max": 0.46
   },
   "CH3 LG_fit_gain_25": {
-    "min": 120,
-    "max": 135
+    "min": 110,
+    "max": 160
   },
   "SUM x3_baseline_25": {
     "min": -720,
@@ -248,11 +248,11 @@
     "max": 0.803
   },
   "SUM x3_gain_25": {
-    "min": 1340,
-    "max": 1450
+    "min": 1275,
+    "max": 1650
   },
   "SUM x3_eni_25": {
-    "min": 350,
+    "min": 1e-8,
     "max": 575
   },
   "SUM x3_peaking_time_25": {
@@ -260,15 +260,15 @@
     "max": 45
   },
   "SUM x3_max_non_linearity_25": {
-    "min": 0.2,
+    "min": 1e-8,
     "max": 0.75
   },
   "SUM x3_fit_gain_25": {
-    "min": 1340,
-    "max": 1450
+    "min": 1275,
+    "max": 1650
   },
   "SUM x1_baseline_25": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "SUM x1_noise_rms_mv_25": {
@@ -276,11 +276,11 @@
     "max": 0.292
   },
   "SUM x1_gain_25": {
-    "min": 465,
-    "max": 510
+    "min": 460,
+    "max": 560
   },
   "SUM x1_eni_25": {
-    "min": 400,
+    "min": 1e-8,
     "max": 650
   },
   "SUM x1_peaking_time_25": {
@@ -288,12 +288,12 @@
     "max": 42.5
   },
   "SUM x1_max_non_linearity_25": {
-    "min": 0.08,
+    "min": 1e-8,
     "max": 0.24
   },
   "SUM x1_fit_gain_25": {
-    "min": 465,
-    "max": 510
+    "min": 460,
+    "max": 560
   },
   "SUM x1_gain_crude_25": {
     "min": 413.1,
@@ -332,15 +332,15 @@
     "max": 3488
   },
   "400_kHz_i2c_margin_list_25": {
-    "min": 290,
+    "min": 270,
     "max": 360
   },
   "1_MHz_i2c_margin_list_25": {
-    "min": 290,
+    "min": 270,
     "max": 360
   },
   "1V2_current_25": {
-    "min": 275,
+    "min": 255,
     "max": 310
   },
   "1V2_voltage_25": {
@@ -348,7 +348,7 @@
     "max": 1260
   },
   "2V5_current_25": {
-    "min": 96,
+    "min": 86,
     "max": 109
   },
   "2V5_voltage_25": {
@@ -356,31 +356,31 @@
     "max": 2625
   },
   "pwr_total_mw_power_25": {
-    "min": 580,
+    "min": 500,
     "max": 640
   },
   "hg_gain_uniformity_25": {
-    "min": 0,
+    "min": 1e-8,
     "max": 10
   },
   "lg_gain_uniformity_25": {
-    "min": 0,
+    "min": 1e-8,
     "max": 10
   },
   "hg_peaking_time_uniformity_25": {
-    "min": 0,
+    "min": 1e-8,
     "max": 5
   },
   "lg_peaking_time_uniformity_25": {
-    "min": 0,
+    "min": 1e-8,
     "max": 5
   },
   "hg_baseline_uniformity_25": {
-    "min": 0,
+    "min": 1e-8,
     "max": 10
   },
   "lg_baseline_uniformity_25": {
-    "min": 0,
+    "min": 1e-8,
     "max": 10
   },
   "gain_ratio_0_50": {
@@ -400,19 +400,19 @@
     "max": 24
   },
   "CH0 HG_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH0 HG_noise_rms_mv_50": {
-    "min": 0.641,
-    "max": 1.363
+    "min": 1e-8,
+    "max": 1e+8
   },
   "CH0 HG_gain_50": {
-    "min": 15400,
-    "max": 16400
+    "min": 15200,
+    "max": 18200
   },
   "CH0 HG_eni_50": {
-    "min": 40,
+    "min": 1e-8,
     "max": 100
   },
   "CH0 HG_peaking_time_50": {
@@ -421,26 +421,26 @@
   },
   "CH0 HG_max_non_linearity_50": {
     "min": 1e-8,
-    "max": 0.3
+    "max": 0.2
   },
   "CH0 HG_fit_gain_50": {
-    "min": 15400,
-    "max": 16400
+    "min": 15200,
+    "max": 18200
   },
   "CH1 HG_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH1 HG_noise_rms_mv_50": {
-    "min": 0.641,
-    "max": 1.363
+    "min": 1e-8,
+    "max": 1e+8
   },
   "CH1 HG_gain_50": {
-    "min": 15400,
-    "max": 16400
+    "min": 15200,
+    "max": 18200
   },
   "CH1 HG_eni_50": {
-    "min": 40,
+    "min": 1e-8,
     "max": 100
   },
   "CH1 HG_peaking_time_50": {
@@ -449,26 +449,26 @@
   },
   "CH1 HG_max_non_linearity_50": {
     "min": 1e-8,
-    "max": 0.3
+    "max": 0.2
   },
   "CH1 HG_fit_gain_50": {
-    "min": 15400,
-    "max": 16400
+    "min": 15200,
+    "max": 18200
   },
   "CH2 HG_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH2 HG_noise_rms_mv_50": {
-    "min": 0.641,
-    "max": 1.363
+    "min": 1e-8,
+    "max": 1e+8
   },
   "CH2 HG_gain_50": {
-    "min": 15400,
-    "max": 16400
+    "min": 15200,
+    "max": 18200
   },
   "CH2 HG_eni_50": {
-    "min": 40,
+    "min": 1e-8,
     "max": 100
   },
   "CH2 HG_peaking_time_50": {
@@ -477,26 +477,26 @@
   },
   "CH2 HG_max_non_linearity_50": {
     "min": 1e-8,
-    "max": 0.3
+    "max": 0.2
   },
   "CH2 HG_fit_gain_50": {
-    "min": 15400,
-    "max": 16400
+    "min": 15200,
+    "max": 18200
   },
   "CH3 HG_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH3 HG_noise_rms_mv_50": {
-    "min": 0.641,
-    "max": 1.363
+    "min": 1e-8,
+    "max": 1e+8
   },
   "CH3 HG_gain_50": {
-    "min": 15400,
-    "max": 16400
+    "min": 15200,
+    "max": 18200
   },
   "CH3 HG_eni_50": {
-    "min": 40,
+    "min": 1e-8,
     "max": 100
   },
   "CH3 HG_peaking_time_50": {
@@ -505,26 +505,26 @@
   },
   "CH3 HG_max_non_linearity_50": {
     "min": 1e-8,
-    "max": 0.3
+    "max": 0.2
   },
   "CH3 HG_fit_gain_50": {
-    "min": 15400,
-    "max": 16400
+    "min": 15200,
+    "max": 18200
   },
   "CH0 LG_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH0 LG_noise_rms_mv_50": {
-    "min": 0.109,
-    "max": 0.164
+    "min": 1e-8,
+    "max":1e+8
   },
   "CH0 LG_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 750
   },
   "CH0 LG_eni_50": {
-    "min": 160,
+    "min": 1e-8,
     "max": 245
   },
   "CH0 LG_peaking_time_50": {
@@ -537,22 +537,22 @@
   },
   "CH0 LG_fit_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 750
   },
   "CH1 LG_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH1 LG_noise_rms_mv_50": {
-    "min": 0.109,
-    "max": 0.164
+    "min": 1e-8,
+    "max":1e+8
   },
   "CH1 LG_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 750
   },
   "CH1 LG_eni_50": {
-    "min": 160,
+    "min": 1e-8,
     "max": 245
   },
   "CH1 LG_peaking_time_50": {
@@ -565,22 +565,22 @@
   },
   "CH1 LG_fit_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 750
   },
   "CH2 LG_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH2 LG_noise_rms_mv_50": {
-    "min": 0.109,
-    "max": 0.164
+    "min": 1e-8,
+    "max":1e+8
   },
   "CH2 LG_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 750
   },
   "CH2 LG_eni_50": {
-    "min": 160,
+    "min": 1e-8,
     "max": 245
   },
   "CH2 LG_peaking_time_50": {
@@ -593,22 +593,22 @@
   },
   "CH2 LG_fit_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 750
   },
   "CH3 LG_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "CH3 LG_noise_rms_mv_50": {
-    "min": 0.109,
-    "max": 0.164
+    "min": 1e-8,
+    "max":1e+8
   },
   "CH3 LG_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 750
   },
   "CH3 LG_eni_50": {
-    "min": 160,
+    "min": 1e-8,
     "max": 245
   },
   "CH3 LG_peaking_time_50": {
@@ -621,22 +621,22 @@
   },
   "CH3 LG_fit_gain_50": {
     "min": 650,
-    "max": 700
+    "max": 750
   },
   "SUM x3_baseline_50": {
     "min": -720,
     "max": -570
   },
   "SUM x3_noise_rms_mv_50": {
-    "min": 0.550,
-    "max": 0.806
+    "min": 1e-8,
+    "max": 1e+8
   },
   "SUM x3_gain_50": {
     "min": 7100,
-    "max": 7550
+    "max": 8400
   },
   "SUM x3_eni_50": {
-    "min": 75,
+    "min": 1e-8,
     "max": 110
   },
   "SUM x3_peaking_time_50": {
@@ -649,22 +649,22 @@
   },
   "SUM x3_fit_gain_50": {
     "min": 7100,
-    "max": 7550
+    "max": 8400
   },
   "SUM x1_baseline_50": {
-    "min": -650,
+    "min": -660,
     "max": -540
   },
   "SUM x1_noise_rms_mv_50": {
-    "min": 0.193,
-    "max": 0.283
+    "min": 1e-8,
+    "max": 1e+8
   },
   "SUM x1_gain_50": {
-    "min": 2480,
-    "max": 2650
+    "min": 2400,
+    "max": 2950
   },
   "SUM x1_eni_50": {
-    "min": 80,
+    "min": 1e-8,
     "max": 115
   },
   "SUM x1_peaking_time_50": {
@@ -672,12 +672,12 @@
     "max": 35.3
   },
   "SUM x1_max_non_linearity_50": {
-    "min": 0.08,
+    "min": 1e-8,
     "max": 0.24
   },
   "SUM x1_fit_gain_50": {
-    "min": 2480,
-    "max": 2650
+    "min": 2400,
+    "max": 2950
   },
   "SUM x1_gain_crude_50": {
     "min": 330.736642575,
@@ -716,15 +716,15 @@
     "max": 3230.037713900001
   },
   "400_kHz_i2c_margin_list_50": {
-    "min": 290,
+    "min": 270,
     "max": 360
   },
   "1_MHz_i2c_margin_list_50": {
-    "min": 290,
+    "min": 270,
     "max": 360
   },
   "1V2_current_50": {
-    "min": 275,
+    "min": 255,
     "max": 310
   },
   "1V2_voltage_50": {
@@ -732,7 +732,7 @@
     "max": 1260
   },
   "2V5_current_50": {
-    "min": 96,
+    "min": 86,
     "max": 109
   },
   "2V5_voltage_50": {
@@ -740,31 +740,31 @@
     "max": 2625
   },
   "pwr_total_mw_power_50": {
-    "min": 580,
+    "min": 500,
     "max": 640
   },
   "hg_gain_uniformity_50": {
-    "min": 0,
+    "min": 1e-8,
     "max": 10
   },
   "lg_gain_uniformity_50": {
-    "min": 0,
+    "min": 1e-8,
     "max": 10
   },
   "hg_peaking_time_uniformity_50": {
-    "min": 0,
+    "min": 1e-8,
     "max": 5
   },
   "lg_peaking_time_uniformity_50": {
-    "min": 0,
+    "min": 1e-8,
     "max": 5
   },
   "hg_baseline_uniformity_50": {
-    "min": 0,
+    "min": 1e-8,
     "max": 10
   },
   "lg_baseline_uniformity_50": {
-    "min": 0,
+    "min": 1e-8,
     "max": 10
   }
 }
