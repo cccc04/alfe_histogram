@@ -176,9 +176,16 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
                 fig, ax1 = plt.subplots(figsize=(10, 6))
                 full_key = f"{key_prefix}_{param}_{impedance}" if outer_key is None else f"{outer_key}_{param}_{impedance}"
 
+                filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if outer_key is None \
+                    else f"{outer_key}_{param}_{impedance}_histogram.png"
+
+                #if os.path.exists(os.path.join(output_directory, filename)):
+                    #plt.close()
+                    #continue
+
                 use_skew = 'uniformity' in full_key.lower()
                 
-                p5, p95 = np.percentile(values, [5, 95])
+                p5, p95 = np.percentile(values, [10, 90])
                 filtered = [v for v in values if p5 <= v <= p95]
                 if use_skew:
                     a, loc, scale = skewnorm.fit(filtered)
@@ -196,43 +203,49 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
                 if xlimb and full_key in lim_limits:
                     lim = lim_limits[full_key]
 
-                # Adjust x-axis to �5? if xlim is not provided
                 if use_skew:
                     xlim = {
                         "min": -0.05,
-                        "max": mu + 5 * sigma
+                        "max": mu + 6 * sigma
                     }
                 else:
                     xlim = {
-                        "min": mu - 5 * sigma,
-                        "max": mu + 5 * sigma
+                        "min": mu - 6 * sigma,
+                        "max": mu + 6 * sigma
                     }
                 
-                bw = (xlim["max"] - xlim["min"]) / (N_BINS + 10)
+                bw = (xlim["max"] - xlim["min"]) / (N_BINS)
+
+                values = [v for v in values if xlim["min"] - 0.1 * (xlim["max"] - xlim["min"]) <= v <= xlim["max"] + 0.1 * (xlim["max"] - xlim["min"])]
+
+                if max(values) - min(values) > 20000 * bw:
+                    print(f"Warning: Large range in values for {full_key}. Consider adjusting bin width.")
+                    continue
+
                 bins = np.arange(min(values), max(values) + bw, bw)
 
                 if not xlimb:
                     bins = np.linspace(xlim["min"], xlim["max"], N_BINS)
 
+                # X limits and vertical lines
+                plt.xlim(xlim["min"] ,
+                         xlim["max"] )
+
                 # Plot histogram
                 counts, bins_, patches = ax1.hist(values, bins=bins, alpha=0.7, density=False, label='Count')
                 ax1.set_ylabel('Count')
                 ax1.tick_params(axis='y')
+                ax1.grid(True)
 
                 ax2 = ax1.twinx()
                 ax2.hist(values, bins=bins, alpha=0, density=True)  # invisible histogram for scaling
-                ax2.set_ylabel('Probability Density')
-                ax2.tick_params(axis='y')
+                ax2.set_yticks([])  
 
                 # Gaussian curve
                 if show_fit:
                     x = np.linspace(xlim["min"], xlim["max"], 1000)
                     y = skewnorm.pdf(x, a, loc, scale) if use_skew else norm.pdf(x, mu, sigma)
                     ax2.plot(x, y, 'k--', label=fit_label)
-
-                # X limits and vertical lines
-                plt.xlim(xlim["min"] ,
-                         xlim["max"] )
 
                 if xlimb and full_key in lim_limits:
                     plt.axvline(x=lim["min"], color='red', linestyle='--', label=f'min: {lim["min"]:.2f}')
@@ -247,8 +260,6 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
                 plt.legend(loc='upper right', fontsize=12)
                 plt.tight_layout()
 
-                filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if outer_key is None \
-                    else f"{outer_key}_{param}_{impedance}_histogram.png"
                 plt.savefig(os.path.join(output_directory, filename), dpi=300)
                 plt.close()
 
