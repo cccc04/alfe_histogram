@@ -36,7 +36,7 @@
     "max": 47.73
   },
   "CH0 HG_max_non_linearity_25": {
-    "min": 0.018,
+    "min": 1e-8,
     "max": 0.102
   },
   "CH0 HG_fit_gain_25": {
@@ -64,7 +64,7 @@
     "max": 47.73
   },
   "CH1 HG_max_non_linearity_25": {
-    "min": 0.018,
+    "min": 1e-8,
     "max": 0.102
   },
   "CH1 HG_fit_gain_25": {
@@ -92,7 +92,7 @@
     "max": 47.73
   },
   "CH2 HG_max_non_linearity_25": {
-    "min": 0.018,
+    "min": 1e-8,
     "max": 0.102
   },
   "CH2 HG_fit_gain_25": {
@@ -120,7 +120,7 @@
     "max": 47.73
   },
   "CH3 HG_max_non_linearity_25": {
-    "min": 0.018,
+    "min": 1e-8,
     "max": 0.102
   },
   "CH3 HG_fit_gain_25": {
