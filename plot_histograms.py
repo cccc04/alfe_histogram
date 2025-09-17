@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm, skewnorm
 import numpy as np
 from datetime import datetime
+import util
 
 # Fixed number of bins (e.g., 20 bins)
 N_BINS = 20
@@ -14,7 +15,7 @@ def read_json_files(file_paths, impedance):
     channel_params = [
         "baseline", "noise_rms_mv", "gain", "eni", 
         "peaking_time", "max_non_linearity", "fit_gain", 
-        "gain_crude", "i2c_margin_list"
+        "gain_crude", "i2c_margin_list", "i2c_phase_list"
     ]
     
     # List of channels found in the JSON files
@@ -55,21 +56,7 @@ def read_json_files(file_paths, impedance):
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON from {file_path}: {e}")
                 continue
-        
-        '''
-        match = re.search(r'(\d{3}-\d{5})', file_path)
-        if not match:
-            match = re.search(r'(\d{3}-\s\d{5})', file_path)  # Handle cases with space
-        if match:
-            if match.group(1) not in s_n:
-                s_n.append(match.group(1))
-            else:
-                print(f"({file_path}): Duplicate serial number {match.group(1)} found")
-                continue
-        else:
-            print(f"Warning({file_path}): No match found")
-            continue
-        '''
+                
         if "test_time" in data:
 
             date_parts = data["test_time"].split('_')[:3]  # ['13', '06', '25']
@@ -85,6 +72,19 @@ def read_json_files(file_paths, impedance):
                 continue
         else:
             print(f"Warning: 'test_time' not found in {file_path}, skipping file")
+            continue
+
+        match = re.search(r'(\d{3}-\d{5})', file_path)
+        if not match:
+            match = re.search(r'(\d{3}-\s\d{5})', file_path)  # Handle cases with space
+        if match:
+            if match.group(1) not in s_n:
+                s_n.append(match.group(1))
+            else:
+                print(f"({file_path}): Duplicate serial number {match.group(1)} found")
+                continue
+        else:
+            print(f"Warning({file_path}): No match found")
             continue
 
         # Process HG
@@ -111,7 +111,7 @@ def read_json_files(file_paths, impedance):
         process_results(data, f"results_linearity_{impedance}_all_ch_HG", ["max_non_linearity", "fit_gain"])
         process_results(data, f"results_linearity_{impedance}_all_ch_LG", ["max_non_linearity", "fit_gain"])
         process_results(data, f"results_channel_enable_{impedance}", ["gain_crude"])
-        process_results(data, "i2c_results", ["i2c_margin_list"])
+        process_results(data, "i2c_results", ["i2c_margin_list", "i2c_phase_list"])
 
         # Gain ratio
         gain_ratio_key = f"gain_ratio_{impedance}"
@@ -165,7 +165,28 @@ def load_existing_xlim(output_directory, impedance):
 def plot_histograms(data_dict, output_directory, root_directory, impedance, label, key_prefix, histogram_type, xlimb, show_fit=True):
     if xlimb:
         lim_limits = load_existing_xlim(root_directory, impedance)
-
+    
+    channel_params_with_units = {
+    "baseline": "Baseline (mV)",            
+    "noise_rms_mv": "noise rms (mV)",
+    "gain": "Gain ($\Omega$)",         
+    "eni": "ENI (nA)",                             
+    "peaking_time": "Peaking Time (ns)",                   
+    "max_non_linearity": "INL (%)",                 
+    "fit_gain": "Fit Gain ($\Omega$)",                    
+    "gain_crude": "Gain Crude ($\Omega$)",
+    "gain_uniformity": "Gain Uniformity (%)",
+    "peaking_time_uniformity": "Peaking Time Uniformity (%)",
+    "baseline_uniformity": "Baseline Uniformity (%)",
+    "i2c_frequency_list": "I2C Frequency (kHz)",
+    0: "Gain Ratio",
+    2: "Gain Ratio",
+    1: "Gain Ratio",
+    3: "Gain Ratio",
+    "voltage": "Voltage (mV)",
+    "current": "Current (mA)",
+    "i2c_margin_list": "dB",  
+    }
     for outer_key, inner_dict in data_dict.items():
         if not isinstance(inner_dict, dict):
             inner_dict = {outer_key: inner_dict}
@@ -179,9 +200,9 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
                 filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if outer_key is None \
                     else f"{outer_key}_{param}_{impedance}_histogram.png"
 
-                #if os.path.exists(os.path.join(output_directory, filename)):
-                    #plt.close()
-                    #continue
+                if os.path.exists(os.path.join(output_directory, filename)):
+                    plt.close()
+                    continue
 
                 use_skew = 'uniformity' in full_key.lower()
                 
@@ -234,6 +255,7 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
                 # Plot histogram
                 counts, bins_, patches = ax1.hist(values, bins=bins, alpha=0.7, density=False, label='Count')
                 ax1.set_ylabel('Count')
+                ax1.set_xlabel(channel_params_with_units.get(param, param))
                 ax1.tick_params(axis='y')
                 ax1.grid(True)
 
@@ -242,7 +264,7 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
                 ax2.set_yticks([])  
 
                 # Gaussian curve
-                if show_fit:
+                if show_fit and not use_skew:
                     x = np.linspace(xlim["min"], xlim["max"], 1000)
                     y = skewnorm.pdf(x, a, loc, scale) if use_skew else norm.pdf(x, mu, sigma)
                     ax2.plot(x, y, 'k--', label=fit_label)
@@ -255,7 +277,6 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
 
                 title_key = f"{label} {param}" if outer_key is None else f"{param} for {outer_key}"
                 plt.title(f"{title_key} - {impedance}")
-                plt.xlabel(param)
                 plt.grid(True)
                 plt.legend(loc='upper right', fontsize=12)
                 plt.tight_layout()
@@ -276,7 +297,8 @@ def main(root_directory, output_directory, xlimb = False):
         for dirpath, _, filenames in os.walk(root_directory):
             if "results_all.json" in filenames:
                 file_paths.append(os.path.join(dirpath, "results_all.json"))
-   
+        
+        file_paths = sorted(file_paths, key=util.extract_timestamp, reverse=True)
         channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values = read_json_files(file_paths, impedance_index)
    
         plot_histograms(channel_values, output_directory, current_directory, impedance_index, "Channel", "channel", "channel_histograms", xlimb)
@@ -287,5 +309,5 @@ def main(root_directory, output_directory, xlimb = False):
 
 if __name__ == '__main__':
     root_directory = "../July/"  # Update with your actual root directory.
-    output_directory = "../July/rstst1/"  # Update with your desired output directory.
+    output_directory = "../July/rstst3/"  # Update with your desired output directory.
     main(root_directory, output_directory, True)

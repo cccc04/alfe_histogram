@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 import matplotlib.dates as mdates
+import util
 
-def read_json_file(file_paths):
-    impedance = "25"
+def read_json_file(file_paths, impedance):
+    #impedance = "25"
 	# Define per-channel parameters (excluding uniformity)
     channel_params = [
         "baseline", "noise_rms_mv", "gain", "eni", 
@@ -102,7 +103,7 @@ def read_json_file(file_paths):
 
     return channel_values, hour_values, temp_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values
 
-def plot_baseline_timeplot(channel_values, hour_values, y, output_directory):
+def plot_baseline_timeplot(channel_values, hour_values, y, impedance, label, output_directory):
     for channel, values in channel_values.items():
         if not isinstance(values, dict):
             values = {channel: values}
@@ -110,14 +111,14 @@ def plot_baseline_timeplot(channel_values, hour_values, y, output_directory):
         for param, value in values.items():
             if value:
                 fig, ax = plt.subplots(figsize=(10, 6))
-                ax.plot(hour_values, value, 'o')  # 'o' for dots
+                ax.plot(hour_values, value, 'o-',markersize=2, linewidth=1)  # 'o' for dots
                 if len(str(param)) < 2:
                     param = "gain_ratio" + str(param)
                 ax.set_ylabel(f"{param}")
                 if y:
                     ax.set_xlabel("Time", fontsize=12)
                     if channel == None:
-                        ax.set_title(f"{param} Time Plot", fontsize=14)
+                        ax.set_title(f"{param}_{label.lower()} Time Plot", fontsize=14)
                     else:                        
                         ax.set_title(f"{param} Time Plot - {channel}", fontsize=14)
                     ax.xaxis.set_major_locator(mdates.AutoDateLocator())  # Auto adjusts tick frequency
@@ -131,29 +132,34 @@ def plot_baseline_timeplot(channel_values, hour_values, y, output_directory):
                         ax.set_title(f"{param} Temperature Plot - {channel}")
                 ax.grid(True)
 
+                filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if channel is None \
+                    else f"{channel}_{param}_{impedance}_histogram.png"
                 if y:
-                    plt.savefig(os.path.join(output_directory, f"{param}_timeplot_{channel}.png"), dpi=300)
+                    plt.savefig(os.path.join(output_directory, filename), dpi=300)
                 else:
-                    plt.savefig(os.path.join(output_directory, f"{param}_tempplot_{channel}.png"), dpi=300)
+                    plt.savefig(os.path.join(output_directory, filename), dpi=300)
                 plt.close(fig)  # Close this figure after saving
 
 if __name__ == '__main__':
     # Example usage
-    root_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/Nevis_Tray2_Tray3_355/GradeA_Tray3_173"
-    output_directory = "../BNL_Tray1_Tray4_Tray2_tray3_674/t3/"
+    root_directory = "../2025-07-23/"
+    output_directory = "../2025-07-23/t3/"
     # Collect all results_all.json file paths.
     file_paths = []
     for dirpath, _, filenames in os.walk(root_directory):
         if "results_all.json" in filenames:
             file_paths.append(os.path.join(dirpath, "results_all.json"))
-    channel_values, hour_values, temp_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values = read_json_file(file_paths)
-    plot_baseline_timeplot(channel_values, hour_values, True, output_directory)
+    impedance = "25"
+    file_paths = sorted(file_paths, key=util.extract_timestamp, reverse=True)
+    channel_values, hour_values, temp_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values = read_json_file(file_paths, impedance)
+    #plot_baseline_timeplot(channel_values, hour_values, True, output_directory)
+    plot_baseline_timeplot(uniformity_hg, hour_values, True, impedance, "HG", output_directory)
+    plot_baseline_timeplot(uniformity_lg, hour_values, True, impedance, "LG", output_directory)
+    plot_baseline_timeplot(gain_ratio_values, hour_values, True, impedance, "", output_directory)
+    '''
     plot_baseline_timeplot(channel_values, temp_values, False, output_directory)
-    plot_baseline_timeplot(power_ldo_values, hour_values, True, output_directory)
     plot_baseline_timeplot(power_ldo_values, temp_values, False, output_directory)
-    plot_baseline_timeplot(uniformity_hg, hour_values, True, output_directory)
     plot_baseline_timeplot(uniformity_hg, temp_values, False, output_directory)
-    plot_baseline_timeplot(uniformity_lg, hour_values, True, output_directory)
     plot_baseline_timeplot(uniformity_lg, temp_values, False, output_directory)
-    plot_baseline_timeplot(gain_ratio_values, hour_values, True, output_directory)
     plot_baseline_timeplot(gain_ratio_values, temp_values, False, output_directory)
+    '''

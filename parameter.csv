@@ -1,4 +1,5 @@
 parameter name
+i2c_phase_list
 i2c_margin_list
 current
 power

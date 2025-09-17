@@ -10,3 +10,4 @@
 /step.py
 *.png
 /output1.csv
+/__pycache__

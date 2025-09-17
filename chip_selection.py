@@ -5,6 +5,8 @@ import pandas as pd
 import re
 import os
 from collections import defaultdict
+from datetime import datetime
+import util
 
 def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file_path, empty_paths):
     # Load criteria from the JSON file
@@ -74,6 +76,8 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         return row, flag
 
     uniformity_key = {"gain_uniformity", "peaking_time_uniformity", "baseline_uniformity"}
+    c_key = {"hg_lg", "sum_x1", "sum_x3"}
+    u_key = ["x1", "x3"]
     gain_ratio_key = {0, 1, 2, 3}
     s_n = []
     off = 0
@@ -89,6 +93,23 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON from {file_path}: {e}")
                 continue
+
+        if "test_time" in data:
+
+            date_parts = data["test_time"].split('_')[:3]  # ['13', '06', '25']
+            date_str = f"{date_parts[0]}-{date_parts[1]}-{date_parts[2]}"  # '13-06-25'
+            date_obj = datetime.strptime(date_str, "%d-%m-%y")  # dd-mm-yy
+
+            # Define cutoff date (e.g., June 7, 2025)
+            cutoff_date = datetime(year=date_obj.year, month=6, day=11)
+
+            # Check if it's later
+            if date_obj < cutoff_date:
+                print(f"skipping file")
+                continue
+        else:
+            print(f"Warning: 'test_time' not found in {file_path}, skipping file")
+            continue
 
         match = re.search(r'(\d{3}-\s\d{5})', file_path)
         if not match:
@@ -118,16 +139,17 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                 (f"results_noise_{impedance}_sum_x3", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"]),
                 (f"results_noise_{impedance}_sum_x1", ["baseline", "noise_rms_mv", "gain", "eni", "peaking_time"]),
                 (f"results_linearity_{impedance}_sum_x3", ["max_non_linearity", "fit_gain"]),
-                (f"results_linearity_{impedance}_sum_x1", ["max_non_linearity", "fit_gain"]),
+                (f"results_linearity_{impedance}_sum_x1", ["max_non_linearity", "fit_gain", "peaking_time_std"]),
                 (f"results_linearity_{impedance}_all_ch_HG", ["max_non_linearity", "fit_gain"]),
                 (f"results_linearity_{impedance}_all_ch_LG", ["max_non_linearity", "fit_gain"]),
                 (f"results_channel_enable_{impedance}", ["gain_crude"]),
-                ("i2c_results", ["i2c_margin_list"]),
+                (f"results_baseline_{impedance}", ["residual", "slope_fit", "offset"]),
+                ("i2c_results", ["i2c_margin_list", "i2c_phase_list"]),
             ]
             
             i = 0;
             for key, params in keys_to_process:
-                if impedance == "50" and i == 8:
+                if impedance == "50" and i > 7:
                     continue
                 row_data, row_flag = process_results(data, key, params, impedance)
                 if i < 2:
@@ -149,6 +171,24 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
                     else:
                         for ukey in uniformity_key:
                             param_stats[f"{gain}_{ukey}_{impedance}"]["F"] += 1
+                if i == 9 and impedance == "25":
+                    if key in data:
+                        baseline_results = data[key]
+                        if "dclvl_sh_calib" in baseline_results:
+                            c_results = baseline_results["dclvl_sh_calib"]
+                            for ckey in c_key:
+                                if ckey in c_results:
+                                    j = 0
+                                    for criteria in [criteria1, criteria2]:
+                                        if not is_within_criteria(c_results[ckey], f"dclvl_sh_calib_{ckey}", criteria):
+                                            row.append(f"dclvl_sh_calib_{ckey}: {c_results[ckey]} {grade[j]}")
+                                            flag = j - 1 if flag > j - 1 else flag
+                                            param_stats[f"dclvl_sh_calib_{ckey}"][grade[j]] += 1
+                                            break
+                                        j += 1
+                                    if j == 2:
+                                        param_stats[f"dclvl_sh_calib_{ckey}"]["A"] += 1
+
                 if row_data:
                     row.extend(row_data)
                 if flag > row_flag:
@@ -183,27 +223,45 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
             else:
                 param_stats[f"gain_ratio_{impedance}"]["F"] += 1
 
-            if "power_ldo" in data:
-                for ldo in data["power_ldo"]:
-                    ldo_name = ldo.get("name")
-                    if not ldo_name:
-                        continue
-                    for key, value in ldo.items():
-                        if key == "name":
+            if  impedance == "25":
+                if "power_ldo" in data:
+                    for ldo in data["power_ldo"]:
+                        ldo_name = ldo.get("name")
+                        if not ldo_name:
                             continue
-                        j = 0
-                        for criteria in [criteria1, criteria2]:
-                            if not is_within_criteria(value, f"{ldo_name}_{key}_{impedance}", criteria):
-                                row.append(f"{ldo_name}_{key}_{impedance}: {value} {grade[j]}")
-                                flag = j - 1 if flag > j - 1 else flag
-                                param_stats[f"{ldo_name}_{key}_{impedance}"][grade[j]] += 1
-                                break
-                            j += 1
-                        if j == 2:
-                            param_stats[f"{ldo_name}_{key}_{impedance}"]["A"] += 1
-            else:
-                param_stats[f"{ldo_name}_{key}_{impedance}"]["F"] += 1
-                print(f"Warning({file_path}): power_ldo not found in data")
+                        for key, value in ldo.items():
+                            if key == "name":
+                                continue
+                            j = 0
+                            for criteria in [criteria1, criteria2]:
+                                if not is_within_criteria(value, f"{ldo_name}_{key}_{impedance}", criteria):
+                                    row.append(f"{ldo_name}_{key}_{impedance}: {value} {grade[j]}")
+                                    flag = j - 1 if flag > j - 1 else flag
+                                    param_stats[f"{ldo_name}_{key}_{impedance}"][grade[j]] += 1
+                                    break
+                                j += 1
+                            if j == 2:
+                                param_stats[f"{ldo_name}_{key}_{impedance}"]["A"] += 1
+                else:
+                    param_stats[f"{ldo_name}_{key}_{impedance}"]["F"] += 1
+                    print(f"Warning({file_path}): power_ldo not found in data")
+
+            if f"results_sum_uniformity_{impedance}" in data:
+                uniformity_results = data[f"results_sum_uniformity_{impedance}"]
+                uniformity_results = uniformity_results[f"uniformity"]
+                for idx, value in enumerate(uniformity_results):
+                    j = 0
+                    for criteria in [criteria1, criteria2]:
+                        if not is_within_criteria(value, f"sum_{u_key[idx]}_uniformity_{impedance}", criteria):
+                            row.append(f"sum_{u_key[idx]}_uniformity_{impedance}: {value} {grade[j]}")
+                            flag = j - 1 if flag > j - 1 else flag
+                            param_stats[f"sum_{u_key[idx]}_uniformity_{impedance}"][grade[j]] += 1
+                            break
+                        j += 1
+                    if j == 2:
+                        param_stats[f"sum_{u_key[idx]}_uniformity_{impedance}"]["A"] += 1
+                
+
         # Insert Pass/Fail status at index 1
 
         if flag == -1:
@@ -241,14 +299,15 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
         f_count += 1
         empty_count += 1
     # Add a statistics row at the end of the dataframe
-    stats_row = ["Overall", "", f"A: {a_count}", f"B: {b_count}", f"F: {f_count}", f"Ratio: {a_count/(a_count + b_count + f_count)}"]
+    stats_row = ["Overall", a_count, b_count, f_count, a_count/(a_count + b_count + f_count)]
     output.append(stats_row)
     for param, stats in sorted(param_stats.items()):
-        output.append([param, "", stats["A"], stats["B"], stats["F"] + empty_count, f'Ratio: {stats["A"]/(stats["A"] + stats["B"] + stats["F"] + empty_count)}'])
+        output.append([param, stats["A"], stats["B"], stats["F"] + empty_count, stats["A"]/(stats["A"] + stats["B"] + stats["F"] + empty_count)])
 
     # Split output into main results and statistics
     main_results = output[:-1 * (len(param_stats) + 1)]
     statistics_results = output[-1 * (len(param_stats) + 1):]
+    statistics_results.insert(0,["", f"A", f"B", f"F", f"Ratio"])
 
     # Convert to DataFrames
     df_main = pd.DataFrame(main_results)
@@ -257,13 +316,21 @@ def apply_cuts(file_paths, criteria_file_path1, criteria_file_path2, output_file
     # Save to Excel with two sheets
     with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
         df_main.to_excel(writer, sheet_name='Results', index=False)
-        df_stats.to_excel(writer, sheet_name='Statistics', index=False)
+        df_stats.to_excel(writer, sheet_name='Statistics', index=False, header=False)
+        # Get workbook and worksheet objects
+        workbook  = writer.book
+        worksheet = writer.sheets['Statistics']
+        percent_format = workbook.add_format({'num_format': '0.00%'})
+
+        # Apply percentage format to the last column of df_stats
+        percent_col_idx = len(df_stats.columns) - 1
+        worksheet.set_column(percent_col_idx, percent_col_idx, 12, percent_format)
 
 if __name__ == '__main__':
-    root_directory = "../July/2025-08-01"
+    root_directory = "../july/"
     spec_path = "./spec.json"
     B_limit_path = "./limits.json"
-    output_path = "./results01.xlsx"
+    output_path = "./results826.xlsx"
     file_paths = []
     empty_paths = []
     filecount = 0
@@ -277,5 +344,5 @@ if __name__ == '__main__':
         else:
             print(f"Warning: No results_all.json or metadata.json found in {dirpath}")
     print(f"Found {filecount} files to process.")
-    file_paths.sort(reverse=True)
+    file_paths = sorted(file_paths, key=util.extract_timestamp, reverse=True)
     apply_cuts(file_paths, spec_path, B_limit_path, output_path, empty_paths)
