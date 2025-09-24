@@ -2,10 +2,11 @@ import json
 import os
 import re
 import matplotlib.pyplot as plt
-from scipy.stats import norm, skewnorm
+from scipy.stats import fit, norm, skewnorm
 import numpy as np
 from datetime import datetime
 import util
+from typing import Dict, Any, List, Tuple
 
 # Fixed number of bins (e.g., 20 bins)
 N_BINS = 20
@@ -141,20 +142,6 @@ def read_json_files(file_paths, impedance):
 
     return channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values
 
-def load_bin_widths(output_directory, filename="bin_widths.json"):
-    """
-    Load the bin widths from a JSON file.
-    """
-    file_path = os.path.join(output_directory, filename)
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            bin_widths = json.load(f)
-        print(f"Loaded bin widths from {file_path}")
-        return bin_widths
-    else:
-        print(f"No bin widths file found at {file_path}")
-        return None
-
 def load_existing_xlim(output_directory, impedance):
     xlim_file_path = os.path.join(output_directory, f"limits.json")
     if os.path.exists(xlim_file_path):
@@ -162,19 +149,91 @@ def load_existing_xlim(output_directory, impedance):
             return json.load(f)  # Load existing xlim limits
     return {}  # Return an empty dictionary if no existing file is found
 
-def plot_histograms(data_dict, output_directory, root_directory, impedance, label, key_prefix, histogram_type, xlimb, show_fit=True):
-    if xlimb:
-        lim_limits = load_existing_xlim(root_directory, impedance)
+def _fit_distribution(values: List[float], use_skew: bool) -> Dict[str, Any]:
+    """1. FIT: Fits data to a distribution and returns its parameters."""
+    p10, p90 = np.percentile(values, [10, 90])
+    filtered = [v for v in values if p10 <= v <= p90]
+    if not filtered:
+        return {"mu": 0, "sigma": 1, "a": 0, "loc": 0, "scale": 1, "label": "Fit Failed"}
+
+    if use_skew:
+        a, loc, scale = skewnorm.fit(filtered)
+        label = f'Skew-Normal Fit\n$\\mu$={loc:.3g}, $\\sigma$={scale:.3g}'
+        return {"mu": loc, "sigma": scale, "a": a, "loc": loc, "scale": scale, "label": label}
+    else:
+        mu, sigma = norm.fit(filtered)
+        label = f'Gaussian Fit\n$\\mu$={mu:.3g}, $\\sigma$={sigma:.3g}'
+        return {"mu": mu, "sigma": sigma, "a": 0, "loc": mu, "scale": sigma, "label": label}
+
+def _prepare_canvas(xlim: Dict[str, float], config: Dict[str, Any]) -> Tuple[Any, Any, Any]:
+    """2. PREPARE: Creates and returns the Matplotlib figure and axes."""
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+    ax1.set_xlim(xlim["min"], xlim["max"])
+    ax2 = ax1.twinx()
+    ax2.set_yticks([]) # The twin axis is for scaling only
     
-    channel_params_with_units = {
+    # Set primary axis labels
+    ax1.set_xlabel(config["x_axis_label"])
+    ax1.set_ylabel('Count')
+    ax1.grid(True)
+    return fig, ax1, ax2
+
+def _plot_on_canvas(
+    ax1: Any, ax2: Any, plot_values: List[float], bins: Any,
+    fit_params: Dict[str, Any], spec_limits: Dict[str, Any],
+    essentials: Dict[str, str], config: Dict[str, Any]
+):
+    """3. PLOT: Draws all data, fits, and lines onto the prepared axes."""
+    # Plot main histogram and the invisible scaling histogram
+    color = config["color"]
+    label = config["label"]
+    ax1.hist(plot_values, bins=bins, alpha=0.7, label=label, color=color)
+    ax2.hist(plot_values, bins=bins, alpha=0, density=True)
+
+    # Plot the fitted curve
+    if config["show_fit"]:
+        x_fit = np.linspace(ax1.get_xlim()[0], ax1.get_xlim()[1], 1000)
+        y_fit = (skewnorm.pdf(x_fit, fit_params["a"], fit_params["loc"], fit_params["scale"])
+                 if config["use_skew"]
+                 else norm.pdf(x_fit, fit_params["mu"], fit_params["sigma"]))
+        ax2.plot(x_fit, y_fit, 'k--', color=color, label=fit_params["label"])
+
+    # Plot specification limit lines
+    if config["xlimb"] and essentials["full_key"] in spec_limits:
+        lim = spec_limits[essentials["full_key"]]
+        ax1.axvline(x=lim["min"], color='r', ls='--', label=f'Min: {lim["min"]:.3g}')
+        ax1.axvline(x=lim["max"], color='r', ls='--', label=f'Max: {lim["max"]:.3g}')
+
+def _finalize_and_save_plot(fig: Any, ax1: Any, ax2: Any, filepath: str, title: str):
+    """4. SAVE: Sets final touches like title/legend, then saves and closes."""
+    ax1.set_title(title)
+    
+    # Combine legends from both axes into one
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper right', fontsize=12)
+    
+    plt.tight_layout()
+    plt.savefig(filepath, dpi=300)
+    plt.close(fig)
+
+def plot_histograms(
+    data_collection: Dict[str, Dict[str, Any]], output_directory: str, root_directory: str,
+    impedance: str, label: str, key_prefix: str, xlimb: bool, show_fit: bool = True
+):
+
+    # --- Initial Setup ---
+    spec_limits = load_existing_xlim(root_directory, impedance) if xlimb else {}
+
+    channel_params_units = {
     "baseline": "Baseline (mV)",            
     "noise_rms_mv": "noise rms (mV)",
-    "gain": "Gain ($\Omega$)",         
+    "gain": "Gain ($\\Omega$)",         
     "eni": "ENI (nA)",                             
     "peaking_time": "Peaking Time (ns)",                   
     "max_non_linearity": "INL (%)",                 
-    "fit_gain": "Fit Gain ($\Omega$)",                    
-    "gain_crude": "Gain Crude ($\Omega$)",
+    "fit_gain": "Fit Gain ($\\Omega$)",                    
+    "gain_crude": "Gain Crude ($\\Omega$)",
     "gain_uniformity": "Gain Uniformity (%)",
     "peaking_time_uniformity": "Peaking Time Uniformity (%)",
     "baseline_uniformity": "Baseline Uniformity (%)",
@@ -187,119 +246,106 @@ def plot_histograms(data_dict, output_directory, root_directory, impedance, labe
     "current": "Current (mA)",
     "i2c_margin_list": "dB",  
     }
-    for outer_key, inner_dict in data_dict.items():
-        if not isinstance(inner_dict, dict):
-            inner_dict = {outer_key: inner_dict}
-            outer_key = None
+    
+    essentials = []
+    plot_values = []
+    bins = []
+    fit_params = []
+    plot_config = []
+    xlim = []
+    filepath = []
+    i = 0
+    for data_key, data_dict in data_collection.items():
 
-        for param, values in inner_dict.items():
-            if values:
-                fig, ax1 = plt.subplots(figsize=(10, 6))
-                full_key = f"{key_prefix}_{param}_{impedance}" if outer_key is None else f"{outer_key}_{param}_{impedance}"
-
-                filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if outer_key is None \
-                    else f"{outer_key}_{param}_{impedance}_histogram.png"
-
-                if os.path.exists(os.path.join(output_directory, filename)):
-                    plt.close()
-                    continue
-
-                use_skew = 'uniformity' in full_key.lower()
-                
-                p5, p95 = np.percentile(values, [10, 90])
-                filtered = [v for v in values if p5 <= v <= p95]
-                if use_skew:
-                    a, loc, scale = skewnorm.fit(filtered)
-                    fit_label = f'Skew-Normal Fit\n$\mu$={loc:.3g}, $\sigma$={scale:.3g}'
-                    mu, sigma = loc, scale  # For setting x-limits
-                else:
-                    mu, sigma = norm.fit(filtered)
-                    fit_label = f'Gaussian Fit\n$\mu$={mu:.3g}, $\sigma$={sigma:.3g}'
-                
-
-                # Default bin width and bins
-                bw = None
-                bins = N_BINS
-
-                if xlimb and full_key in lim_limits:
-                    lim = lim_limits[full_key]
-
-                if use_skew:
-                    xlim = {
-                        "min": -0.05,
-                        "max": mu + 6 * sigma
-                    }
-                else:
-                    xlim = {
-                        "min": mu - 6 * sigma,
-                        "max": mu + 6 * sigma
-                    }
-                
-                bw = (xlim["max"] - xlim["min"]) / (N_BINS)
-
-                values = [v for v in values if xlim["min"] <= v <= xlim["max"]]
-
-                if max(values) - min(values) > 20000 * bw:
-                    print(f"Warning: Large range in values for {full_key}. Consider adjusting bin width.")
-                    continue
-
-                bins = np.arange(min(values), max(values) + bw, bw)
-
-                if not xlimb:
-                    bins = np.linspace(xlim["min"], xlim["max"], N_BINS)
-
-                # X limits and vertical lines
-                plt.xlim(xlim["min"] ,
-                         xlim["max"] )
-
-                # Plot histogram
-                counts, bins_, patches = ax1.hist(values, bins=bins, alpha=0.7, density=False, label='Count')
-                ax1.set_ylabel('Count')
-                ax1.set_xlabel(channel_params_with_units.get(param, param))
-                ax1.tick_params(axis='y')
-                ax1.grid(True)
-
-                ax2 = ax1.twinx()
-                ax2.hist(values, bins=bins, alpha=0, density=True)  # invisible histogram for scaling
-                ax2.set_yticks([])  
-
-                # Gaussian curve
-                if show_fit and not use_skew:
-                    x = np.linspace(xlim["min"], xlim["max"], 1000)
-                    y = skewnorm.pdf(x, a, loc, scale) if use_skew else norm.pdf(x, mu, sigma)
-                    ax2.plot(x, y, 'k--', label=fit_label)
-
-                if xlimb and full_key in lim_limits:
-                    plt.axvline(x=lim["min"], color='red', linestyle='--', label=f'min: {lim["min"]:.2f}')
-                    plt.axvline(x=lim["max"], color='red', linestyle='--', label=f'max: {lim["max"]:.2f}')
-                elif xlimb:
-                    print(f"xlim for {full_key} does not exist in file")
-
-                title_key = f"{label} {param}" if outer_key is None else f"{param} for {outer_key}"
-                plt.title(f"{title_key} - {impedance}")
-                plt.grid(True)
-                plt.legend(loc='upper right', fontsize=12)
-                plt.tight_layout()
-
-                plt.savefig(os.path.join(output_directory, filename), dpi=300)
-                plt.close()
+        items_to_plot = {}
+        for outer_key, inner_data in data_dict.items():
+            if isinstance(inner_data, dict):
+                items_to_plot.update({(outer_key, k): v for k, v in inner_data.items()})
+            else:
+                items_to_plot[(None, outer_key)] = inner_data
+            
+        # --- Main Loop ---
+        j = 0
+        essentials.append([])
+        plot_values.append([])
+        bins.append([])
+        fit_params.append([])
+        plot_config.append([])
+        for (outer_key, param), values in items_to_plot.items():
+            if not values:
+                continue
+        
+            # --- Data Preparation Step ---
+            essentials[i].append({ 
+                "full_key": f"{outer_key or key_prefix}_{param}_{impedance}",
+                "title": f"{param} for {outer_key}" if outer_key else f"{label} {param}"
+            })
+            filename = f"{essentials[i][j]['full_key']}_histogram.png".replace(f"_{key_prefix}", label.lower())
+            if i == 0:
+                filepath.append(os.path.join(output_directory, filename))
+            if os.path.exists(filepath[j]):
+                continue
+            
+            use_skew = 'uniformity' in essentials[i][j]["full_key"].lower()
+            fit_params[i].append(_fit_distribution(values, use_skew))
+        
+            xlim_min = -0.05 if use_skew else fit_params[i][j]["mu"] - 6 * fit_params[i][j]["sigma"]
+            xlim_max = fit_params[i][j]["mu"] + 6 * fit_params[i][j]["sigma"]
+            if i == 0:
+                xlim.append({"min": xlim_min, "max": xlim_max})
+            else:
+                xlim[j]["min"] = min(xlim[j]["min"], xlim_min)
+                xlim[j]["max"] = max(xlim[j]["max"], xlim_max)
+        
+            plot_values[i].append([v for v in values if xlim[j]["min"] <= v <= xlim[j]["max"]])
+            if not plot_values[i][j]:
+                continue
+            
+            bin_width = (xlim_max - xlim_min) / N_BINS
+            bins[i].append(np.linspace(xlim_min, xlim_max, N_BINS) if not xlimb
+                    else np.arange(min(plot_values[i][j]), max(plot_values[i][j]) + bin_width, bin_width))
+                    
+            plot_config[i].append({
+                "show_fit": show_fit, "use_skew": use_skew, "xlimb": xlimb, "label": data_key, "color": 'C0',
+                "x_axis_label": channel_params_units.get(param, param)
+            })
+            j += 1
+        
+        i += 1
 
 
+    # 1. Prepare the canvas
+    for jj in range(0, j):
+        fig, ax1, ax2 = _prepare_canvas(xlim[jj], plot_config[0][jj])
 
-def main(root_directory, output_directory, xlimb = False):
+        for ii in range(0, i):
+            # 2. Plot all data onto the canvas
+            _plot_on_canvas(ax1, ax2, plot_values[ii][jj], bins[ii][jj], fit_params[ii][jj], spec_limits, essentials[ii][jj], plot_config[ii][jj])
+        
+        # 3. Finalize and save the plot
+        _finalize_and_save_plot(fig, ax1, ax2, filepath[jj], essentials[0][jj]["title"] + " - " + impedance)
+
+
+def main(root_directorys: Dict[str, any], output_directory, xlimb = False):
     impedance = ["25", "50"]
     current_directory = "./"
     for impedance_index in impedance:
         os.makedirs(output_directory, exist_ok=True)
    
         # Collect all results_all.json file paths.
-        file_paths = []
-        for dirpath, _, filenames in os.walk(root_directory):
-            if "results_all.json" in filenames:
-                file_paths.append(os.path.join(dirpath, "results_all.json"))
+        channel_values = {}
+        power_ldo_values = {}
+        uniformity_hg = {}
+        uniformity_lg = {}
+        gain_ratio_values = {}
+        for label, root_directory in root_directorys.items():
+            file_paths = []
+            for dirpath, _, filenames in os.walk(root_directory):
+                if "results_all.json" in filenames:
+                    file_paths.append(os.path.join(dirpath, "results_all.json"))
         
-        file_paths = sorted(file_paths, key=util.extract_timestamp, reverse=True)
-        channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values = read_json_files(file_paths, impedance_index)
+            file_paths = sorted(file_paths, key=util.extract_timestamp, reverse=True)
+            channel_values[label], power_ldo_values[label], uniformity_hg[label], uniformity_lg[label], gain_ratio_values[label] = read_json_files(file_paths, impedance_index)
    
         plot_histograms(channel_values, output_directory, current_directory, impedance_index, "Channel", "channel", "channel_histograms", xlimb)
         plot_histograms(power_ldo_values, output_directory, current_directory, impedance_index, "Power_LDO", "power_ldo", "power_ldo_histograms", xlimb)
@@ -308,6 +354,6 @@ def main(root_directory, output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
 
 if __name__ == '__main__':
-    root_directory = "../July/"  # Update with your actual root directory.
-    output_directory = "../July/rstst3/"  # Update with your desired output directory.
+    root_directory = {"robot": "../July/", "manual": "../0603_0611/"}  # Update with your actual root directory.
+    output_directory = "../July/rstst6/"  # Update with your desired output directory.
     main(root_directory, output_directory, True)
