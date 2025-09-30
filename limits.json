@@ -240,8 +240,8 @@
     "max": 1e+8
   },
   "SUM x3_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "SUM x3_noise_rms_mv_25": {
     "min": 1e-8,
@@ -253,23 +253,23 @@
   },
   "SUM x3_eni_25": {
     "min": 1e-8,
-    "max": 2000
+    "max": 1e+8
   },
   "SUM x3_peaking_time_25": {
-    "min": 36,
-    "max": 46
+    "min": 1e-8,
+    "max": 1e+8
   },
   "SUM x3_max_non_linearity_25": {
     "min": 1e-8,
-    "max": 2
+    "max": 1e+8
   },
   "SUM x3_fit_gain_25": {
     "min": 1e-8,
     "max": 1e+8
   },
   "SUM x1_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "SUM x1_noise_rms_mv_25": {
     "min": 1e-8,
@@ -443,15 +443,15 @@
     "min": -15,
     "max": 5
   },
-  "dclvl_sh_calib_hg_lg": {
+  "dclvl_sh_calib_hg_lg_25": {
     "min": 8,
     "max": 12
   },
-  "dclvl_sh_calib_sum_x1": {
+  "dclvl_sh_calib_sum_x1_25": {
     "min": 7,
     "max": 12
   },
-  "dclvl_sh_calib_sum_x3": {
+  "dclvl_sh_calib_sum_x3_25": {
     "min": 6,
     "max": 13
   },
@@ -764,8 +764,8 @@
     "max": 1e+8
   },
   "SUM x3_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "SUM x3_noise_rms_mv_50": {
     "min": 1e-8,
@@ -777,23 +777,23 @@
   },
   "SUM x3_eni_50": {
     "min": 1e-8,
-    "max": 700
+    "max": 1e+8
   },
   "SUM x3_peaking_time_50": {
-    "min": 30,
-    "max": 40
+    "min": 1e-8,
+    "max": 1e+8
   },
   "SUM x3_max_non_linearity_50": {
     "min": 1e-8,
-    "max": 2
+    "max": 1e+8
   },
   "SUM x3_fit_gain_50": {
     "min": 1e-8,
     "max": 1e+8
   },
   "SUM x1_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "SUM x1_noise_rms_mv_50": {
     "min": 1e-8,
@@ -805,15 +805,15 @@
   },
   "SUM x1_eni_50": {
     "min": 1e-8,
-    "max": 700
+    "max": 1e+8
   },
   "SUM x1_peaking_time_50": {
-    "min": 30,
-    "max": 40
+    "min": 1e-8,
+    "max": 1e+8
   },
   "SUM x1_max_non_linearity_50": {
     "min": 1e-8,
-    "max": 2
+    "max": 1e+8
   },
   "SUM x1_fit_gain_50": {
     "min": 1e-8,

@@ -9,14 +9,15 @@ import util
 from typing import Dict, Any, List, Tuple
 
 # Fixed number of bins (e.g., 20 bins)
-N_BINS = 20
+N_BINS = 40
 
 def read_json_files(file_paths, impedance):
     # Define per-channel parameters (excluding uniformity)
     channel_params = [
         "baseline", "noise_rms_mv", "gain", "eni", 
         "peaking_time", "max_non_linearity", "fit_gain", 
-        "gain_crude", "i2c_margin_list", "i2c_phase_list"
+        "gain_crude", "i2c_margin_list", "i2c_phase_list",
+        "residual", "slope_fit", "offset"
     ]
     
     # List of channels found in the JSON files
@@ -33,6 +34,7 @@ def read_json_files(file_paths, impedance):
     gain_ratio_values = {0: [], 1: [], 2: [], 3: []}
     uniformity_hg = {"gain_uniformity": [], "peaking_time_uniformity": [], "baseline_uniformity": []}
     uniformity_lg = {"gain_uniformity": [], "peaking_time_uniformity": [], "baseline_uniformity": []}
+    dclvl = {"hg_lg": [], "sum_x1": [], "sum_x3": []}
     s_n = []
 
     def process_results(data, key_suffix, params):
@@ -85,8 +87,18 @@ def read_json_files(file_paths, impedance):
                 print(f"({file_path}): Duplicate serial number {match.group(1)} found")
                 continue
         else:
-            print(f"Warning({file_path}): No match found")
-            continue
+            match = re.search(r'(\d{8})', file_path)
+            if not match:
+                match = re.search(r'(\d{6})', file_path)
+            if match:
+                if match.group(1) not in s_n:
+                    s_n.append(match.group(1))
+                else:
+                    print(f"({file_path}): Duplicate serial number {match.group(1)} found")
+                    continue
+            else:
+                print(f"Warning({file_path}): No match found")
+                continue
 
         # Process HG
         key_hg = f"results_noise_{impedance}_all_ch_HG"
@@ -113,6 +125,13 @@ def read_json_files(file_paths, impedance):
         process_results(data, f"results_linearity_{impedance}_all_ch_LG", ["max_non_linearity", "fit_gain"])
         process_results(data, f"results_channel_enable_{impedance}", ["gain_crude"])
         process_results(data, "i2c_results", ["i2c_margin_list", "i2c_phase_list"])
+        process_results(data, f"results_baseline_{impedance}", ["residual", "slope_fit", "offset"])
+        if f"results_baseline_{impedance}" in data:
+            baseline_results = data[f"results_baseline_{impedance}"]
+            if "dclvl_sh_calib" in baseline_results:
+                c_results = baseline_results["dclvl_sh_calib"]
+                for key in dclvl:
+                    dclvl[key].append(c_results.get(key))
 
         # Gain ratio
         gain_ratio_key = f"gain_ratio_{impedance}"
@@ -140,7 +159,7 @@ def read_json_files(file_paths, impedance):
                         power_ldo_values[ldo_name][key] = []
                     power_ldo_values[ldo_name][key].append(value)
 
-    return channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values
+    return channel_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values, dclvl
 
 def load_existing_xlim(output_directory, impedance):
     xlim_file_path = os.path.join(output_directory, f"limits.json")
@@ -165,7 +184,10 @@ def _fit_distribution(values: List[float], use_skew: bool) -> Dict[str, Any]:
         label = f'Gaussian Fit\n$\\mu$={mu:.3g}, $\\sigma$={sigma:.3g}'
         return {"mu": mu, "sigma": sigma, "a": 0, "loc": mu, "scale": sigma, "label": label}
 
-def _prepare_canvas(xlim: Dict[str, float], config: Dict[str, Any]) -> Tuple[Any, Any, Any]:
+def _prepare_canvas(xlim: Dict[str, float],  
+    essentials: Dict[str, str],
+    spec_limits: Dict[str, Any], 
+    config: Dict[str, Any]) -> Tuple[Any, Any, Any]:
     """2. PREPARE: Creates and returns the Matplotlib figure and axes."""
     fig, ax1 = plt.subplots(figsize=(10, 6))
     ax1.set_xlim(xlim["min"], xlim["max"])
@@ -176,18 +198,23 @@ def _prepare_canvas(xlim: Dict[str, float], config: Dict[str, Any]) -> Tuple[Any
     ax1.set_xlabel(config["x_axis_label"])
     ax1.set_ylabel('Count')
     ax1.grid(True)
+
+    # Plot specification limit lines
+    if config["xlimb"] and essentials["full_key"] in spec_limits:
+        lim = spec_limits[essentials["full_key"]]
+        ax1.axvline(x=lim["min"], color='r', ls='--', label=f'Min: {lim["min"]:.3g}')
+        ax1.axvline(x=lim["max"], color='r', ls='--', label=f'Max: {lim["max"]:.3g}')
     return fig, ax1, ax2
 
 def _plot_on_canvas(
     ax1: Any, ax2: Any, plot_values: List[float], bins: Any,
-    fit_params: Dict[str, Any], spec_limits: Dict[str, Any],
-    essentials: Dict[str, str], config: Dict[str, Any]
+    fit_params: Dict[str, Any], config: Dict[str, Any]
 ):
     """3. PLOT: Draws all data, fits, and lines onto the prepared axes."""
     # Plot main histogram and the invisible scaling histogram
     color = config["color"]
     label = config["label"]
-    ax1.hist(plot_values, bins=bins, alpha=0.7, label=label, color=color)
+    ax1.hist(plot_values, bins=bins, histtype='step', alpha=0.7, label=label, color=color, linewidth=3)
     ax2.hist(plot_values, bins=bins, alpha=0, density=True)
 
     # Plot the fitted curve
@@ -197,12 +224,6 @@ def _plot_on_canvas(
                  if config["use_skew"]
                  else norm.pdf(x_fit, fit_params["mu"], fit_params["sigma"]))
         ax2.plot(x_fit, y_fit, 'k--', color=color, label=fit_params["label"])
-
-    # Plot specification limit lines
-    if config["xlimb"] and essentials["full_key"] in spec_limits:
-        lim = spec_limits[essentials["full_key"]]
-        ax1.axvline(x=lim["min"], color='r', ls='--', label=f'Min: {lim["min"]:.3g}')
-        ax1.axvline(x=lim["max"], color='r', ls='--', label=f'Max: {lim["max"]:.3g}')
 
 def _finalize_and_save_plot(fig: Any, ax1: Any, ax2: Any, filepath: str, title: str):
     """4. SAVE: Sets final touches like title/legend, then saves and closes."""
@@ -219,7 +240,7 @@ def _finalize_and_save_plot(fig: Any, ax1: Any, ax2: Any, filepath: str, title: 
 
 def plot_histograms(
     data_collection: Dict[str, Dict[str, Any]], output_directory: str, root_directory: str,
-    impedance: str, label: str, key_prefix: str, xlimb: bool, show_fit: bool = True
+    impedance: str, label: str, key_prefix: str, xlimb: bool, show_fit: bool = False
 ):
 
     # --- Initial Setup ---
@@ -247,13 +268,13 @@ def plot_histograms(
     "i2c_margin_list": "dB",  
     }
     
-    essentials = []
     plot_values = []
     bins = []
     fit_params = []
     plot_config = []
     xlim = []
     filepath = []
+    essentials = []
     i = 0
     for data_key, data_dict in data_collection.items():
 
@@ -264,9 +285,7 @@ def plot_histograms(
             else:
                 items_to_plot[(None, outer_key)] = inner_data
             
-        # --- Main Loop ---
         j = 0
-        essentials.append([])
         plot_values.append([])
         bins.append([])
         fit_params.append([])
@@ -276,32 +295,39 @@ def plot_histograms(
                 continue
         
             # --- Data Preparation Step ---
-            essentials[i].append({ 
-                "full_key": f"{outer_key or key_prefix}_{param}_{impedance}",
-                "title": f"{param} for {outer_key}" if outer_key else f"{label} {param}"
-            })
-            filename = f"{essentials[i][j]['full_key']}_histogram.png".replace(f"_{key_prefix}", label.lower())
+            if i == 0:
+                essentials.append({ 
+                    "full_key": f"{outer_key or key_prefix}_{param}_{impedance}",
+                    "title": f"{param} for {outer_key}" if outer_key else f"{label} {param}"
+                })
+            filename = f"{essentials[j]['full_key']}_histogram.png".replace(f"_{key_prefix}", label.lower())
             if i == 0:
                 filepath.append(os.path.join(output_directory, filename))
             if os.path.exists(filepath[j]):
                 continue
             
-            use_skew = 'uniformity' in essentials[i][j]["full_key"].lower()
+            use_skew = 'uniformity' in essentials[j]["full_key"].lower()
             fit_params[i].append(_fit_distribution(values, use_skew))
-        
-            xlim_min = -0.05 if use_skew else fit_params[i][j]["mu"] - 6 * fit_params[i][j]["sigma"]
-            xlim_max = fit_params[i][j]["mu"] + 6 * fit_params[i][j]["sigma"]
+            sigma = fit_params[i][j]["sigma"]
+            mu = fit_params[i][j]["mu"]
+            if sigma < 1e-9: # Use a small threshold to handle floating point inaccuracies
+                offset = abs(mu) * 0.05 if mu != 0 else 1.0 
+                xlim_min = mu - offset
+                xlim_max = mu + offset
+            else:
+                xlim_min = -0.05 if use_skew else mu - 6 * sigma
+                xlim_max = mu + 6 * sigma
             if i == 0:
                 xlim.append({"min": xlim_min, "max": xlim_max})
             else:
                 xlim[j]["min"] = min(xlim[j]["min"], xlim_min)
                 xlim[j]["max"] = max(xlim[j]["max"], xlim_max)
-        
-            plot_values[i].append([v for v in values if xlim[j]["min"] <= v <= xlim[j]["max"]])
-            if not plot_values[i][j]:
-                continue
             
             bin_width = (xlim_max - xlim_min) / N_BINS
+        
+            plot_values[i].append([v for v in values if xlim[j]["min"] - 100 * bin_width <= v <= xlim[j]["max"] + 100 * bin_width])
+            if not plot_values[i][j]:
+                continue
             bins[i].append(np.linspace(xlim_min, xlim_max, N_BINS) if not xlimb
                     else np.arange(min(plot_values[i][j]), max(plot_values[i][j]) + bin_width, bin_width))
                     
@@ -313,17 +339,18 @@ def plot_histograms(
         
         i += 1
 
-
-    # 1. Prepare the canvas
+    
+    colorss = plt.cm.RdYlGn(np.linspace(0, 1, i))
     for jj in range(0, j):
-        fig, ax1, ax2 = _prepare_canvas(xlim[jj], plot_config[0][jj])
+        fig, ax1, ax2 = _prepare_canvas(xlim[jj], essentials[jj], spec_limits, plot_config[0][jj])
 
         for ii in range(0, i):
             # 2. Plot all data onto the canvas
-            _plot_on_canvas(ax1, ax2, plot_values[ii][jj], bins[ii][jj], fit_params[ii][jj], spec_limits, essentials[ii][jj], plot_config[ii][jj])
+            plot_config[ii][jj]["color"] = colorss[ii]
+            _plot_on_canvas(ax1, ax2, plot_values[ii][jj], bins[ii][jj], fit_params[ii][jj], plot_config[ii][jj])
         
         # 3. Finalize and save the plot
-        _finalize_and_save_plot(fig, ax1, ax2, filepath[jj], essentials[0][jj]["title"] + " - " + impedance)
+        _finalize_and_save_plot(fig, ax1, ax2, filepath[jj], essentials[jj]["title"] + " - " + impedance)
 
 
 def main(root_directorys: Dict[str, any], output_directory, xlimb = False):
@@ -338,6 +365,7 @@ def main(root_directorys: Dict[str, any], output_directory, xlimb = False):
         uniformity_hg = {}
         uniformity_lg = {}
         gain_ratio_values = {}
+        dclvl = {}
         for label, root_directory in root_directorys.items():
             file_paths = []
             for dirpath, _, filenames in os.walk(root_directory):
@@ -345,13 +373,14 @@ def main(root_directorys: Dict[str, any], output_directory, xlimb = False):
                     file_paths.append(os.path.join(dirpath, "results_all.json"))
         
             file_paths = sorted(file_paths, key=util.extract_timestamp, reverse=True)
-            channel_values[label], power_ldo_values[label], uniformity_hg[label], uniformity_lg[label], gain_ratio_values[label] = read_json_files(file_paths, impedance_index)
+            channel_values[label], power_ldo_values[label], uniformity_hg[label], uniformity_lg[label], gain_ratio_values[label], dclvl[label] = read_json_files(file_paths, impedance_index)
    
-        plot_histograms(channel_values, output_directory, current_directory, impedance_index, "Channel", "channel", "channel_histograms", xlimb)
-        plot_histograms(power_ldo_values, output_directory, current_directory, impedance_index, "Power_LDO", "power_ldo", "power_ldo_histograms", xlimb)
-        plot_histograms(uniformity_hg, output_directory, current_directory, impedance_index, "HG", "hg", "uniformity_histograms", xlimb)
-        plot_histograms(uniformity_lg, output_directory, current_directory, impedance_index, "LG", "lg", "uniformity_histograms", xlimb)
-        plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", "gain_ratio_histograms", xlimb)
+        plot_histograms(channel_values, output_directory, current_directory, impedance_index, "Channel", "channel", xlimb)
+        plot_histograms(power_ldo_values, output_directory, current_directory, impedance_index, "Power_LDO", "power_ldo", xlimb)
+        plot_histograms(uniformity_hg, output_directory, current_directory, impedance_index, "HG", "hg", xlimb)
+        plot_histograms(uniformity_lg, output_directory, current_directory, impedance_index, "LG", "lg", xlimb)
+        plot_histograms(dclvl, output_directory, current_directory, impedance_index, "dclvl_sh_calib", "dclvl_sh_calib", xlimb)
+        plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", xlimb)
 
 if __name__ == '__main__':
     root_directory = {"robot": "../July/", "manual": "../0603_0611/"}  # Update with your actual root directory.

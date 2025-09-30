@@ -13,3 +13,6 @@ uniformity
 gain_crude
 fit_gain
 voltage
+residual
+slope_fit
+offset
