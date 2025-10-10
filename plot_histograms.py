@@ -340,7 +340,7 @@ def plot_histograms(
         i += 1
 
     
-    colorss = plt.cm.RdYlGn(np.linspace(0, 1, i))
+    colorss = plt.cm.hsv(np.linspace(0, 0.77, i))
     for jj in range(0, j):
         fig, ax1, ax2 = _prepare_canvas(xlim[jj], essentials[jj], spec_limits, plot_config[0][jj])
 
@@ -383,6 +383,6 @@ def main(root_directorys: Dict[str, any], output_directory, xlimb = False):
         plot_histograms(gain_ratio_values, output_directory, current_directory, impedance_index, "Gain_Ratio", "gain_ratio", xlimb)
 
 if __name__ == '__main__':
-    root_directory = {"robot": "../July/", "manual": "../0603_0611/"}  # Update with your actual root directory.
-    output_directory = "../July/rstst6/"  # Update with your desired output directory.
+    root_directory = {"BNL robot": "../July/", "BNL manual": "../0603_0611/", "IJC robot": "../2025-08/"}  # Update with your actual root directory.
+    output_directory = "../July/rstst8/"  # Update with your desired output directory.
     main(root_directory, output_directory, True)

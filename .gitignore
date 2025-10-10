@@ -7,7 +7,6 @@
 /results.csv
 /results0.csv
 *.xlsx
-/step.py
 *.png
 /output1.csv
 /__pycache__

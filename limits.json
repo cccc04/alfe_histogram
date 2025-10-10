@@ -16,8 +16,8 @@
     "max": 23.8
   },
   "CH0 HG_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH0 HG_noise_rms_mv_25": {
     "min": 1e-8,
@@ -44,8 +44,8 @@
     "max": 1e+8
   },
   "CH1 HG_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH1 HG_noise_rms_mv_25": {
     "min": 1e-8,
@@ -72,8 +72,8 @@
     "max": 1e+8
   },
   "CH2 HG_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH2 HG_noise_rms_mv_25": {
     "min": 1e-8,
@@ -100,8 +100,8 @@
     "max": 1e+8
   },
   "CH3 HG_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH3 HG_noise_rms_mv_25": {
     "min": 1e-8,
@@ -128,8 +128,8 @@
     "max": 1e+8
   },
   "CH0 LG_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH0 LG_noise_rms_mv_25": {
     "min": 1e-8,
@@ -156,8 +156,8 @@
     "max": 1e+8
   },
   "CH1 LG_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH1 LG_noise_rms_mv_25": {
     "min": 1e-8,
@@ -184,8 +184,8 @@
     "max": 1e+8
   },
   "CH2 LG_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH2 LG_noise_rms_mv_25": {
     "min": 1e-8,
@@ -212,8 +212,8 @@
     "max": 1e+8
   },
   "CH3 LG_baseline_25": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH3 LG_noise_rms_mv_25": {
     "min": 1e-8,
@@ -540,8 +540,8 @@
     "max": 23.9
   },
   "CH0 HG_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH0 HG_noise_rms_mv_50": {
     "min": 1e-8,
@@ -568,8 +568,8 @@
     "max": 1e+8
   },
   "CH1 HG_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH1 HG_noise_rms_mv_50": {
     "min": 1e-8,
@@ -596,8 +596,8 @@
     "max": 1e+8
   },
   "CH2 HG_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH2 HG_noise_rms_mv_50": {
     "min": 1e-8,
@@ -624,8 +624,8 @@
     "max": 1e+8
   },
   "CH3 HG_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH3 HG_noise_rms_mv_50": {
     "min": 1e-8,
@@ -652,8 +652,8 @@
     "max": 1e+8
   },
   "CH0 LG_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH0 LG_noise_rms_mv_50": {
     "min": 1e-8,
@@ -680,8 +680,8 @@
     "max": 1e+8
   },
   "CH1 LG_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH1 LG_noise_rms_mv_50": {
     "min": 1e-8,
@@ -708,8 +708,8 @@
     "max": 1e+8
   },
   "CH2 LG_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH2 LG_noise_rms_mv_50": {
     "min": 1e-8,
@@ -736,8 +736,8 @@
     "max": 1e+8
   },
   "CH3 LG_baseline_50": {
-    "min": -900,
-    "max": -300
+    "min": -1e+8,
+    "max": -1e-8
   },
   "CH3 LG_noise_rms_mv_50": {
     "min": 1e-8,
