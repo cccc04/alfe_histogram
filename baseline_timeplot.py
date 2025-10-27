@@ -44,6 +44,7 @@ def read_json_file(file_paths, impedance):
                         if channel in channel_values and param in channel_values[channel]:
                             channel_values[channel][param].append(val)
 
+    i = 0
     for file_path in file_paths:
         with open(file_path, 'r') as f:
             data = json.load(f)
@@ -99,7 +100,8 @@ def read_json_file(file_paths, impedance):
             # Parse datetime in the format "dd-mm-yy HH-MM-SS"
             dt = datetime.datetime.strptime(cleaned, "%d-%m-%y %H-%M-%S")
             hour_values.append(dt)
-            temp_values.append(temp)
+            temp_values.append(i)
+            i += 1
 
     return channel_values, hour_values, temp_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values
 
@@ -125,11 +127,11 @@ def plot_baseline_timeplot(channel_values, hour_values, y, impedance, label, out
                     ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))  # Format as date
                     plt.xticks(rotation=10)  # Rotate the date labels for better readability
                 else:
-                    ax.set_xlabel("Temperature")
+                    ax.set_xlabel("Count")
                     if channel == None:
-                        ax.set_title(f"{param} Temperature Plot")
+                        ax.set_title(f"{param} Time Plot")
                     else:
-                        ax.set_title(f"{param} Temperature Plot - {channel}")
+                        ax.set_title(f"{param} Time Plot - {channel}")
                 ax.grid(True)
 
                 filename = f"{label.lower()}_{param}_{impedance}_histogram.png" if channel is None \
@@ -143,23 +145,24 @@ def plot_baseline_timeplot(channel_values, hour_values, y, impedance, label, out
 if __name__ == '__main__':
     # Example usage
     root_directory = "../2025-07-23/"
-    output_directory = "../2025-07-23/t3/"
+    output_directory = "../2025-07-23/t/"
     # Collect all results_all.json file paths.
     file_paths = []
     for dirpath, _, filenames in os.walk(root_directory):
         if "results_all.json" in filenames:
             file_paths.append(os.path.join(dirpath, "results_all.json"))
-    impedance = "25"
-    file_paths = sorted(file_paths, key=util.extract_timestamp, reverse=True)
+    impedance = "50"
+    file_paths = sorted(file_paths, key=util.extract_timestamp, reverse=False)
     channel_values, hour_values, temp_values, power_ldo_values, uniformity_hg, uniformity_lg, gain_ratio_values = read_json_file(file_paths, impedance)
     #plot_baseline_timeplot(channel_values, hour_values, True, output_directory)
+    '''
     plot_baseline_timeplot(uniformity_hg, hour_values, True, impedance, "HG", output_directory)
     plot_baseline_timeplot(uniformity_lg, hour_values, True, impedance, "LG", output_directory)
     plot_baseline_timeplot(gain_ratio_values, hour_values, True, impedance, "", output_directory)
     '''
-    plot_baseline_timeplot(channel_values, temp_values, False, output_directory)
-    plot_baseline_timeplot(power_ldo_values, temp_values, False, output_directory)
-    plot_baseline_timeplot(uniformity_hg, temp_values, False, output_directory)
-    plot_baseline_timeplot(uniformity_lg, temp_values, False, output_directory)
-    plot_baseline_timeplot(gain_ratio_values, temp_values, False, output_directory)
-    '''
+    #plot_baseline_timeplot(channel_values, temp_values, False, output_directory)
+    #plot_baseline_timeplot(power_ldo_values, temp_values, False, output_directory)
+    plot_baseline_timeplot(uniformity_hg, temp_values, False, impedance, "HG", output_directory)
+    plot_baseline_timeplot(uniformity_lg, temp_values, False, impedance, "LG", output_directory)
+    plot_baseline_timeplot(gain_ratio_values, temp_values, False, impedance, "", output_directory)
+    
